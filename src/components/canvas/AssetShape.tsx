@@ -220,9 +220,8 @@ export const AssetShape: React.FC<AssetShapeProps> = ({ type, width, height }) =
             width={width}
             height={height}
             fill="rgba(16, 185, 129, 0.08)"
-            stroke="#10b981"
-            strokeWidth={1.5}
-            dash={[4, 3]}
+            stroke="#059669"
+            strokeWidth={1}
             cornerRadius={6}
           />
           <Rect
@@ -481,7 +480,6 @@ export const AssetShape: React.FC<AssetShapeProps> = ({ type, width, height }) =
     case 'power_drop':
       return (
         <Group x={-halfW} y={-halfH}>
-          {/* Compact Portable Power Drop Symbol */}
           <Rect
             width={width}
             height={height}
@@ -493,7 +491,6 @@ export const AssetShape: React.FC<AssetShapeProps> = ({ type, width, height }) =
             shadowBlur={3}
             shadowOpacity={0.3}
           />
-          {/* Lightning Bolt Symbol */}
           <Path
             data={`M ${width * 0.58} ${height * 0.16} L ${width * 0.28} ${height * 0.52} L ${width * 0.52} ${height * 0.52} L ${width * 0.42} ${height * 0.84} L ${width * 0.74} ${height * 0.44} L ${width * 0.52} ${height * 0.44} Z`}
             fill="#fbbf24"

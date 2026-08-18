@@ -109,20 +109,6 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
     >
-      {isSelected && (
-        <Rect
-          x={-width / 2 - 5}
-          y={-height / 2 - 5}
-          width={width + 10}
-          height={height + 10}
-          stroke="#38bdf8"
-          strokeWidth={1.5}
-          dash={[4, 3]}
-          cornerRadius={4}
-          fill="rgba(56, 189, 248, 0.08)"
-        />
-      )}
-
       <AssetShape type={element.type} width={width} height={height} isSelected={isSelected} />
 
       {/* Label Pill (hidden on power drops) */}

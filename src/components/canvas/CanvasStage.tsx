@@ -383,21 +383,21 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
             );
           })}
 
-          {/* Konva Transformer with Corner Rotation Handles (No extended stick line) */}
+          {/* Konva Transformer: Single clean dotted outline + Single top rotation ball */}
           <Transformer
             ref={transformerRef}
             rotateEnabled={true}
-            rotateAnchorOffset={0}
-            enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+            rotateAnchorOffset={24}
+            enabledAnchors={[]}
             rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
             rotationSnapTolerance={10}
             borderStroke="#38bdf8"
             borderStrokeWidth={1.5}
-            borderDash={[4, 3]}
+            borderDash={[4, 4]}
             anchorStroke="#38bdf8"
             anchorFill="#0f172a"
-            anchorSize={8}
-            anchorCornerRadius={4}
+            anchorSize={10}
+            anchorCornerRadius={5}
             onTransformEnd={handleTransformEnd}
           />
 
