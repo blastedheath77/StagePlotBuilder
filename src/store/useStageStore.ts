@@ -12,7 +12,13 @@ import { ASSET_MAP } from '../config/assetCatalog';
 import { useHistoryStore } from './useHistoryStore';
 import { StorageService } from '../services/storageService';
 
+export type AppTheme = 'dark' | 'light';
+
 interface StageStoreState {
+  theme: AppTheme;
+  setTheme: (theme: AppTheme) => void;
+  toggleTheme: () => void;
+
   templateId: string;
   metadata: ProjectMetadata;
   setTemplateId: (id: string) => void;
@@ -73,8 +79,24 @@ interface StageStoreState {
 }
 
 const initialTemplate = VENUE_TEMPLATES[0];
+const initialTheme: AppTheme = (localStorage.getItem('stageplot_theme') as AppTheme) || 'dark';
 
 export const useStageStore = create<StageStoreState>((set, get) => ({
+  theme: initialTheme,
+  setTheme: (theme) => {
+    localStorage.setItem('stageplot_theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    set({ theme });
+  },
+  toggleTheme: () => {
+    const nextTheme: AppTheme = get().theme === 'dark' ? 'light' : 'dark';
+    get().setTheme(nextTheme);
+  },
+
   templateId: initialTemplate.id,
   metadata: {
     id: `plot_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,

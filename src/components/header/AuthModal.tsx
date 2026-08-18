@@ -98,29 +98,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setIsSaving(true);
     const updatedMeta = {
       ...metadata,
-      name: projectName.trim() || 'Stage Plot',
-      venueName: venueName.trim(),
-      engineerName: engineerName.trim(),
-      bandName: bandName.trim(),
-      updatedAt: Date.now(),
+      name: projectName || 'Untitled Stage Plot',
+      venueName,
+      engineerName,
+      bandName,
     };
     setMetadata(updatedMeta);
-
     await StorageService.saveProject(updatedMeta, getExportData());
     await loadProjects();
     setIsSaving(false);
     setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 2000);
+    setTimeout(() => setSaveSuccess(false), 2500);
   };
 
-  const handleLoadProject = (project: SavedProject) => {
-    loadFromData(project.plotData, project.metadata);
+  const handleLoadProject = (proj: SavedProject) => {
+    loadFromData(proj.plotData, proj.metadata);
     onClose();
   };
 
   const handleDeleteProject = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this saved project?')) {
+    if (confirm('Delete this saved plot?')) {
       await StorageService.deleteProject(id);
       await loadProjects();
     }
@@ -130,38 +128,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="w-full max-w-xl bg-studio-900 border border-studio-700/90 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-        <div className="flex items-center justify-between p-4 border-b border-studio-800 bg-studio-950/50">
-          <div className="flex items-center gap-2 text-sm font-bold text-white">
-            <Cloud size={18} className="text-sky-400" />
-            <span>Projects & Persistence (Firebase / Local)</span>
+      <div className="w-full max-w-xl bg-white dark:bg-studio-900 border border-slate-200 dark:border-studio-700/90 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-studio-800 bg-slate-50 dark:bg-studio-950/50">
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+            <Cloud size={18} className="text-sky-600 dark:text-sky-400" />
+            <span>Projects & Cloud Sync</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-studio-800 text-studio-400 hover:text-white transition-colors"
+            className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-studio-800 text-slate-500 dark:text-studio-400 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <X size={18} />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
-          <div className="p-3.5 rounded-xl bg-studio-850 border border-studio-750 flex items-center justify-between">
+          {/* User Account / Auth Card */}
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-studio-850 border border-slate-200 dark:border-studio-750 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-studio-800 border border-studio-700 flex items-center justify-center text-sky-400">
+              <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-studio-800 border border-slate-300 dark:border-studio-700 flex items-center justify-center text-sky-600 dark:text-sky-400">
                 <UserIcon size={18} />
               </div>
               <div>
-                <div className="text-xs font-semibold text-white">
+                <div className="text-xs font-semibold text-slate-900 dark:text-white">
                   {user
                     ? user.displayName || user.email || 'Anonymous Guest'
-                    : 'Local Offline Mode'}
+                    : 'Local Storage Mode'}
                 </div>
-                <div className="text-[11px] text-studio-400">
+                <div className="text-[11px] text-slate-500 dark:text-studio-400">
                   {isFirebaseConfigured
                     ? user
                       ? 'Connected to Firebase Firestore'
                       : 'Sign in to sync your stage plots across devices'
-                    : 'Firebase keys not set; saving safely to browser LocalStorage'}
+                    : 'Saved securely to browser LocalStorage'}
                 </div>
               </div>
             </div>
@@ -171,7 +170,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 {user ? (
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-studio-800 hover:bg-studio-750 text-studio-300 text-xs font-medium transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-studio-800 hover:bg-slate-300 dark:hover:bg-studio-750 text-slate-700 dark:text-studio-300 text-xs font-medium transition-colors"
                   >
                     <LogOut size={14} />
                     <span>Sign Out</span>
@@ -187,7 +186,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     </button>
                     <button
                       onClick={handleGuestSignIn}
-                      className="px-2.5 py-1.5 rounded-lg bg-studio-800 hover:bg-studio-750 text-studio-300 text-xs font-medium transition-colors"
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-studio-800 hover:bg-slate-300 dark:hover:bg-studio-750 text-slate-700 dark:text-studio-300 text-xs font-medium transition-colors"
                     >
                       Guest
                     </button>
@@ -197,53 +196,54 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             )}
           </div>
 
+          {/* Project Details Form */}
           <div className="space-y-3">
-            <div className="text-xs font-semibold text-studio-300 uppercase tracking-wider">
+            <div className="text-xs font-semibold text-slate-700 dark:text-studio-300 uppercase tracking-wider">
               Current Project Details
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] text-studio-400 mb-1">Project Name</label>
+                <label className="block text-[11px] text-slate-500 dark:text-studio-400 mb-1">Project Name</label>
                 <input
                   type="text"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
-                  className="w-full bg-studio-950 border border-studio-750 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-100 dark:bg-studio-950 border border-slate-300 dark:border-studio-750 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                   placeholder="e.g. Festival Main Stage Plot"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-studio-400 mb-1">Band / Artist</label>
+                <label className="block text-[11px] text-slate-500 dark:text-studio-400 mb-1">Band / Artist</label>
                 <input
                   type="text"
                   value={bandName}
                   onChange={(e) => setBandName(e.target.value)}
-                  className="w-full bg-studio-950 border border-studio-750 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
-                  placeholder="e.g. The Headliners"
+                  className="w-full bg-slate-100 dark:bg-studio-950 border border-slate-300 dark:border-studio-750 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                  placeholder="e.g. Electric Echoes"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-studio-400 mb-1">Venue / Room</label>
+                <label className="block text-[11px] text-slate-500 dark:text-studio-400 mb-1">Venue / Stage Name</label>
                 <input
                   type="text"
                   value={venueName}
                   onChange={(e) => setVenueName(e.target.value)}
-                  className="w-full bg-studio-950 border border-studio-750 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
-                  placeholder="e.g. O2 Academy 2"
+                  className="w-full bg-slate-100 dark:bg-studio-950 border border-slate-300 dark:border-studio-750 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                  placeholder="e.g. The Soundstage"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-studio-400 mb-1">FOH Sound Tech</label>
+                <label className="block text-[11px] text-slate-500 dark:text-studio-400 mb-1">Sound Engineer</label>
                 <input
                   type="text"
                   value={engineerName}
                   onChange={(e) => setEngineerName(e.target.value)}
-                  className="w-full bg-studio-950 border border-studio-750 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500"
-                  placeholder="e.g. Sound Engineer"
+                  className="w-full bg-slate-100 dark:bg-studio-950 border border-slate-300 dark:border-studio-750 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                  placeholder="e.g. Alex FOH"
                 />
               </div>
             </div>
@@ -251,73 +251,77 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <button
               onClick={handleSaveCurrent}
               disabled={isSaving}
-              className="w-full mt-2 flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md shadow-sky-600/20 transition-colors disabled:opacity-50"
+              className={`w-full mt-2 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold text-white shadow-md transition-colors ${
+                saveSuccess
+                  ? 'bg-emerald-600'
+                  : 'bg-sky-600 hover:bg-sky-500'
+              }`}
             >
               {saveSuccess ? (
                 <>
-                  <Check size={16} className="text-emerald-300" />
-                  <span>Saved Successfully!</span>
+                  <Check size={15} />
+                  <span>Saved to Projects!</span>
                 </>
               ) : (
                 <>
-                  <Save size={16} />
-                  <span>{isSaving ? 'Saving...' : 'Save Current Diagram'}</span>
+                  <Save size={15} />
+                  <span>{isSaving ? 'Saving...' : 'Save Current Plot'}</span>
                 </>
               )}
             </button>
           </div>
 
+          {/* Saved Projects List */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-semibold text-studio-300 uppercase tracking-wider">
-              <span>Saved Stage Plots ({projects.length})</span>
+            <div className="text-xs font-semibold text-slate-700 dark:text-studio-300 uppercase tracking-wider">
+              Saved Plots ({projects.length})
             </div>
 
             {projects.length === 0 ? (
-              <div className="p-6 text-center border border-dashed border-studio-800 rounded-xl text-xs text-studio-500">
-                No saved stage plots yet. Click &ldquo;Save Current Diagram&rdquo; above to store your first plot.
+              <div className="text-center py-6 text-slate-400 dark:text-studio-500 text-xs border border-dashed border-slate-300 dark:border-studio-800 rounded-xl">
+                No saved stage plots found. Click &ldquo;Save Current Plot&rdquo; above to store your layout.
               </div>
             ) : (
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {projects.map((proj) => (
-                  <div
-                    key={proj.metadata.id}
-                    onClick={() => handleLoadProject(proj)}
-                    className="p-3 rounded-xl bg-studio-850 hover:bg-studio-800 border border-studio-750 hover:border-sky-500/50 flex items-center justify-between cursor-pointer transition-all group"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-white group-hover:text-sky-300 truncate">
-                          {proj.metadata.name}
-                        </span>
-                        {proj.metadata.bandName && (
-                          <span className="text-[10px] text-studio-400 truncate">
-                            &bull; {proj.metadata.bandName}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] text-studio-500 mt-0.5">
-                        <Clock size={11} />
-                        <span>
-                          {new Date(proj.metadata.updatedAt).toLocaleDateString()} at{' '}
-                          {new Date(proj.metadata.updatedAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                        <span>&bull;</span>
-                        <span>{proj.plotData.elements.length} items</span>
-                      </div>
-                    </div>
+                {projects.map((p) => {
+                  const dateStr = new Date(p.metadata.updatedAt).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
 
-                    <button
-                      onClick={(e) => handleDeleteProject(proj.metadata.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-500/20 text-studio-400 hover:text-red-300 transition-all"
-                      title="Delete project"
+                  return (
+                    <div
+                      key={p.metadata.id}
+                      onClick={() => handleLoadProject(p)}
+                      className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-studio-950 border border-slate-200 dark:border-studio-800 hover:border-sky-500/50 cursor-pointer group transition-all"
                     >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 truncate">
+                          {p.metadata.name}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-studio-400 mt-0.5">
+                          {p.metadata.bandName && <span>Band: {p.metadata.bandName} •</span>}
+                          <span className="flex items-center gap-1">
+                            <Clock size={10} />
+                            {dateStr}
+                          </span>
+                          <span>• {p.plotData.elements?.length || 0} items</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={(e) => handleDeleteProject(p.metadata.id, e)}
+                        className="p-1.5 rounded-lg text-slate-400 dark:text-studio-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-200 dark:hover:bg-studio-800 transition-colors ml-2"
+                        title="Delete Plot"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

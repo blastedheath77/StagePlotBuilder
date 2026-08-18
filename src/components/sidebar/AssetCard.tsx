@@ -61,7 +61,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
       draggable
       onDragStart={handleDragStart}
       onClick={handleClickAdd}
-      className="group relative flex items-center justify-between py-2 px-2.5 rounded-lg border border-studio-800 bg-studio-900/80 hover:bg-studio-850 hover:border-studio-700 transition-all cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.01]"
+      className="group relative flex items-center justify-between py-2 px-2.5 rounded-lg border border-slate-200 dark:border-studio-800 bg-slate-50/80 dark:bg-studio-900/80 hover:bg-slate-100 dark:hover:bg-studio-850 hover:border-slate-300 dark:hover:border-studio-700 transition-all cursor-grab active:cursor-grabbing hover:shadow-sm dark:hover:shadow-md hover:scale-[1.01]"
     >
       <div className="flex items-center gap-2.5 min-w-0">
         <div
@@ -71,7 +71,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
           <IconComponent size={15} />
         </div>
 
-        <span className="text-xs font-medium text-studio-200 group-hover:text-white truncate">
+        <span className="text-xs font-medium text-slate-700 dark:text-studio-200 group-hover:text-slate-900 dark:group-hover:text-white truncate">
           {asset.name}
         </span>
       </div>
@@ -79,7 +79,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
       <button
         type="button"
         title="Click to add to canvas"
-        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded bg-studio-750 hover:bg-sky-600 text-studio-300 hover:text-white shrink-0 ml-1"
+        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded bg-slate-200 dark:bg-studio-750 hover:bg-sky-500 hover:text-white text-slate-600 dark:text-studio-300 shrink-0 ml-1"
         onClick={(e) => {
           e.stopPropagation();
           handleClickAdd();

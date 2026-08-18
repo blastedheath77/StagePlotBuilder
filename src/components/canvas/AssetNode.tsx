@@ -29,6 +29,9 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
   const width = element.width || def?.width || 50;
   const height = element.height || def?.height || 50;
 
+  const theme = useStageStore((s) => s.theme);
+  const isDark = theme === 'dark';
+
   const elements = useStageStore((s) => s.elements);
   const gridSnap = useStageStore((s) => s.gridSnap);
   const smartGuides = useStageStore((s) => s.smartGuides);
@@ -95,7 +98,7 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
 
   const pillStroke = isSelected
     ? '#38bdf8'
-    : element.colorTint || category?.color || '#475569';
+    : element.colorTint || category?.color || (isDark ? '#475569' : '#94a3b8');
 
   return (
     <Group
@@ -121,7 +124,7 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
         colorTint={element.colorTint}
       />
 
-      {/* Label Pill (Perfect vertical & horizontal centering) */}
+      {/* Label Pill (Theme-adaptive & centered) */}
       {showLabel && (
         <Group y={labelOffsetY} listening={false}>
           <Rect
@@ -129,13 +132,13 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
             y={-textHeight / 2}
             width={textWidth}
             height={textHeight}
-            fill="rgba(15, 23, 42, 0.94)"
+            fill={isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)'}
             stroke={pillStroke}
             strokeWidth={1}
             cornerRadius={4}
             shadowColor="#000"
-            shadowBlur={4}
-            shadowOpacity={0.5}
+            shadowBlur={isDark ? 4 : 2}
+            shadowOpacity={isDark ? 0.5 : 0.15}
           />
           <Text
             x={-textWidth / 2}
@@ -146,7 +149,7 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
             fontSize={9.5}
             fontFamily="Inter, sans-serif"
             fontStyle="600"
-            fill="#f8fafc"
+            fill={isDark ? '#f8fafc' : '#0f172a'}
             align="center"
             verticalAlign="middle"
             padding={0}

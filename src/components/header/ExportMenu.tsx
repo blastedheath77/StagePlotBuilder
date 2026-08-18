@@ -82,72 +82,67 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({ stageRef }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-52 bg-studio-900 border border-studio-700/80 rounded-xl shadow-2xl py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-          <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-studio-500">
+        <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-studio-900 border border-slate-200 dark:border-studio-700/80 rounded-xl shadow-2xl py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+          <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-studio-500">
             Export Diagram
           </div>
 
           <button
             type="button"
             onClick={handleExportPng}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-studio-200 hover:bg-studio-800 hover:text-white transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 dark:text-studio-200 hover:bg-slate-100 dark:hover:bg-studio-800 hover:text-slate-900 dark:hover:text-white transition-colors text-left"
           >
-            <FileImage size={15} className="text-sky-400" />
+            <FileImage size={15} className="text-sky-600 dark:text-sky-400" />
             <div>
               <div className="font-medium">Export PNG</div>
-              <div className="text-[10px] text-studio-400">High-resolution stage graphic</div>
+              <div className="text-[10px] text-slate-400 dark:text-studio-400">High-resolution stage graphic</div>
             </div>
           </button>
 
           <button
             type="button"
             onClick={handleExportPdf}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-studio-200 hover:bg-studio-800 hover:text-white transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 dark:text-studio-200 hover:bg-slate-100 dark:hover:bg-studio-800 hover:text-slate-900 dark:hover:text-white transition-colors text-left"
           >
-            <FileText size={15} className="text-red-400" />
+            <FileText size={15} className="text-amber-500 dark:text-amber-400" />
             <div>
-              <div className="font-medium">Export PDF Document</div>
-              <div className="text-[10px] text-studio-400">Printable stage plot with title block</div>
+              <div className="font-medium">Export PDF</div>
+              <div className="text-[10px] text-slate-400 dark:text-studio-400">Landscape A4 with title block</div>
             </div>
           </button>
 
           <button
             type="button"
             onClick={handleExportJson}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-studio-200 hover:bg-studio-800 hover:text-white transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 dark:text-studio-200 hover:bg-slate-100 dark:hover:bg-studio-800 hover:text-slate-900 dark:hover:text-white transition-colors text-left"
           >
-            <Code2 size={15} className="text-emerald-400" />
+            <Code2 size={15} className="text-emerald-500 dark:text-emerald-400" />
             <div>
               <div className="font-medium">Export JSON</div>
-              <div className="text-[10px] text-studio-400">Standard PRD data schema</div>
+              <div className="text-[10px] text-slate-400 dark:text-studio-400">PRD schema data payload</div>
             </div>
           </button>
 
-          <div className="my-1.5 border-t border-studio-800" />
+          <div className="h-px bg-slate-200 dark:bg-studio-800 my-1" />
 
-          <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-studio-500">
+          <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-studio-500">
             Import
           </div>
 
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-studio-200 hover:bg-studio-800 hover:text-white transition-colors text-left"
-          >
-            <Upload size={15} className="text-amber-400" />
+          <label className="w-full flex items-center gap-2.5 px-3 py-2 text-slate-700 dark:text-studio-200 hover:bg-slate-100 dark:hover:bg-studio-800 hover:text-slate-900 dark:hover:text-white transition-colors text-left cursor-pointer">
+            <Upload size={15} className="text-purple-500 dark:text-purple-400" />
             <div>
-              <div className="font-medium">Import JSON File...</div>
-              <div className="text-[10px] text-studio-400">Load existing stage plot data</div>
+              <div className="font-medium">Import JSON</div>
+              <div className="text-[10px] text-slate-400 dark:text-studio-400">Load layout from disk</div>
             </div>
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json,application/json"
-            onChange={handleImportJson}
-            className="hidden"
-          />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,application/json"
+              onChange={handleImportJson}
+              className="hidden"
+            />
+          </label>
         </div>
       )}
     </div>

@@ -1,10 +1,11 @@
 import React from 'react';
 import { Group, Line } from 'react-konva';
+import { useStageStore } from '../../store/useStageStore';
 
 interface GridLayerProps {
   width: number;
   height: number;
-  gridSize?: number; // default 30px (0.5m at 60px/meter)
+  gridSize?: number;
 }
 
 export const GridLayer: React.FC<GridLayerProps> = ({
@@ -12,6 +13,12 @@ export const GridLayer: React.FC<GridLayerProps> = ({
   height,
   gridSize = 30,
 }) => {
+  const theme = useStageStore((s) => s.theme);
+  const isDark = theme === 'dark';
+
+  const majorColor = isDark ? '#334155' : '#cbd5e1';
+  const minorColor = isDark ? '#1e293b' : '#e2e8f0';
+
   const lines: React.ReactNode[] = [];
   const majorStep = gridSize * 2; // 1 meter
 
@@ -22,9 +29,9 @@ export const GridLayer: React.FC<GridLayerProps> = ({
       <Line
         key={`v-${x}`}
         points={[x, 0, x, height]}
-        stroke={isMajor ? '#334155' : '#1e293b'}
+        stroke={isMajor ? majorColor : minorColor}
         strokeWidth={isMajor ? 1 : 0.5}
-        opacity={isMajor ? 0.7 : 0.4}
+        opacity={isMajor ? (isDark ? 0.7 : 0.8) : (isDark ? 0.4 : 0.5)}
         dash={isMajor ? undefined : [2, 4]}
       />
     );
@@ -37,9 +44,9 @@ export const GridLayer: React.FC<GridLayerProps> = ({
       <Line
         key={`h-${y}`}
         points={[0, y, width, y]}
-        stroke={isMajor ? '#334155' : '#1e293b'}
+        stroke={isMajor ? majorColor : minorColor}
         strokeWidth={isMajor ? 1 : 0.5}
-        opacity={isMajor ? 0.7 : 0.4}
+        opacity={isMajor ? (isDark ? 0.7 : 0.8) : (isDark ? 0.4 : 0.5)}
         dash={isMajor ? undefined : [2, 4]}
       />
     );

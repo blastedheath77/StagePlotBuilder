@@ -10,7 +10,8 @@ import { StorageService } from './services/storageService';
 export const App: React.FC = () => {
   const stageRef = useRef<Konva.Stage>(null);
 
-  // Store actions
+  // Store state & actions
+  const theme = useStageStore((s) => s.theme);
   const undo = useStageStore((s) => s.undo);
   const redo = useStageStore((s) => s.redo);
   const deleteSelected = useStageStore((s) => s.deleteSelected);
@@ -20,6 +21,15 @@ export const App: React.FC = () => {
   const selectAll = useStageStore((s) => s.selectAll);
   const clearSelection = useStageStore((s) => s.clearSelection);
   const loadFromData = useStageStore((s) => s.loadFromData);
+
+  // Sync theme class to document
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   // Load cached active state if present on initial mount
   useEffect(() => {
@@ -110,7 +120,7 @@ export const App: React.FC = () => {
   }, [undo, redo, deleteSelected, copySelected, paste, duplicateSelected, selectAll, clearSelection]);
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-studio-950 overflow-hidden text-studio-100 font-sans">
+    <div className="flex flex-col h-screen w-screen bg-slate-100 dark:bg-studio-950 overflow-hidden text-slate-800 dark:text-studio-100 font-sans transition-colors duration-200">
       {/* Top Navigation & Controls */}
       <TopHeader stageRef={stageRef} />
 

@@ -30,31 +30,31 @@ export const AssetPalette: React.FC = () => {
   }, [searchQuery]);
 
   return (
-    <aside className="w-72 bg-studio-900 border-r border-studio-800 flex flex-col h-full shrink-0 select-none z-20">
+    <aside className="w-72 bg-white dark:bg-studio-900 border-r border-slate-200 dark:border-studio-800 flex flex-col h-full shrink-0 select-none z-20 transition-colors duration-200">
       {/* Sidebar Header */}
-      <div className="p-3 border-b border-studio-800">
+      <div className="p-3 border-b border-slate-200 dark:border-studio-800">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-studio-200 uppercase tracking-wider">
-            <Layers size={14} className="text-sky-400" />
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-studio-200 uppercase tracking-wider">
+            <Layers size={14} className="text-sky-600 dark:text-sky-400" />
             <span>Asset Palette</span>
           </div>
-          <span className="text-[10px] font-mono text-studio-500">11 Pro Audio Items</span>
+          <span className="text-[10px] font-mono text-slate-500 dark:text-studio-500">12 Audio Items</span>
         </div>
 
         {/* Search Assets Input */}
         <div className="relative">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-studio-500" />
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-studio-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search sound equipment..."
-            className="w-full bg-studio-950 border border-studio-750 rounded-md pl-8 pr-3 py-1.5 text-xs text-studio-100 placeholder-studio-500 focus:outline-none focus:border-sky-500 transition-colors"
+            className="w-full bg-slate-100 dark:bg-studio-950 border border-slate-200 dark:border-studio-750 rounded-md pl-8 pr-3 py-1.5 text-xs text-slate-900 dark:text-studio-100 placeholder-slate-400 dark:placeholder-studio-500 focus:outline-none focus:border-sky-500 transition-colors"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-studio-500 hover:text-white"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-700 dark:text-studio-500 dark:hover:text-white"
             >
               ×
             </button>
@@ -77,16 +77,16 @@ export const AssetPalette: React.FC = () => {
               <button
                 type="button"
                 onClick={() => toggleCategory(catId)}
-                className="w-full flex items-center justify-between py-1 px-1.5 text-xs font-semibold rounded hover:bg-studio-800/60 transition-colors"
+                className="w-full flex items-center justify-between py-1 px-1.5 text-xs font-semibold rounded hover:bg-slate-100 dark:hover:bg-studio-800/60 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <div
                     className="w-2.5 h-2.5 rounded-full"
                     style={{ backgroundColor: categoryDef.color }}
                   />
-                  <span className="text-studio-200">{categoryDef.name}</span>
+                  <span className="text-slate-700 dark:text-studio-200">{categoryDef.name}</span>
                 </div>
-                <div className="flex items-center gap-1 text-studio-500 text-[11px]">
+                <div className="flex items-center gap-1 text-slate-400 dark:text-studio-500 text-[11px]">
                   <span>{items.length}</span>
                   {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                 </div>
@@ -105,17 +105,17 @@ export const AssetPalette: React.FC = () => {
         })}
 
         {filteredAssets.length === 0 && (
-          <div className="text-center py-8 text-studio-500 text-xs">
+          <div className="text-center py-8 text-slate-400 dark:text-studio-500 text-xs">
             No assets match &ldquo;{searchQuery}&rdquo;
           </div>
         )}
       </div>
 
       {/* Footer Info / Drag Hint */}
-      <div className="p-2.5 border-t border-studio-800 bg-studio-950/60 text-[11px] text-studio-400 flex items-center gap-2">
-        <HelpCircle size={14} className="text-sky-400 shrink-0" />
+      <div className="p-2.5 border-t border-slate-200 dark:border-studio-800 bg-slate-50 dark:bg-studio-950/60 text-[11px] text-slate-500 dark:text-studio-400 flex items-center gap-2">
+        <HelpCircle size={14} className="text-sky-600 dark:text-sky-400 shrink-0" />
         <span className="leading-tight">
-          Drag onto stage or click <kbd className="px-1 py-0.5 bg-studio-800 rounded text-[9px] font-mono text-studio-300">+</kbd> to insert.
+          Drag onto stage or click <kbd className="px-1 py-0.5 bg-slate-200 dark:bg-studio-800 rounded text-[9px] font-mono text-slate-700 dark:text-studio-300">+</kbd> to insert.
         </span>
       </div>
     </aside>

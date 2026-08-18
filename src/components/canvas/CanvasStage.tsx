@@ -23,6 +23,9 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
   const transformerRef = useRef<Konva.Transformer>(null);
 
   // Store state
+  const theme = useStageStore((s) => s.theme);
+  const isDark = theme === 'dark';
+
   const templateId = useStageStore((s) => s.templateId);
   const elements = useStageStore((s) => s.elements);
   const selectedIds = useStageStore((s) => s.selectedIds);
@@ -316,10 +319,12 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
     ? 'cursor-grab'
     : 'cursor-crosshair';
 
+  const containerBg = isDark ? 'bg-studio-950' : 'bg-slate-200/90';
+
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-full bg-studio-950 overflow-hidden select-none ${cursorClass}`}
+      className={`relative w-full h-full ${containerBg} transition-colors duration-200 overflow-hidden select-none ${cursorClass}`}
       onContextMenu={(e) => e.preventDefault()}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -395,7 +400,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
             borderStrokeWidth={1.5}
             borderDash={[4, 4]}
             anchorStroke="#38bdf8"
-            anchorFill="#0f172a"
+            anchorFill={isDark ? '#0f172a' : '#ffffff'}
             anchorSize={10}
             anchorCornerRadius={5}
             onTransformEnd={handleTransformEnd}

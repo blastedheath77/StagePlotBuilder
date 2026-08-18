@@ -17,6 +17,8 @@ import {
   Sliders,
   Sparkles,
   Edit3,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 interface TopHeaderProps {
@@ -28,6 +30,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   // Store state
+  const theme = useStageStore((s) => s.theme);
+  const toggleTheme = useStageStore((s) => s.toggleTheme);
   const templateId = useStageStore((s) => s.templateId);
   const metadata = useStageStore((s) => s.metadata);
   const stageScale = useStageStore((s) => s.stageScale);
@@ -50,8 +54,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
   const undo = useStageStore((s) => s.undo);
   const redo = useStageStore((s) => s.redo);
 
+  const isDark = theme === 'dark';
+
   return (
-    <header className="h-14 bg-studio-900 border-b border-studio-800 px-4 flex items-center justify-between select-none z-30 shrink-0">
+    <header className="h-14 bg-white dark:bg-studio-900 border-b border-slate-200 dark:border-studio-800 px-4 flex items-center justify-between select-none z-30 shrink-0 transition-colors duration-200">
       {/* Left: Brand & Editable Project Name */}
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex items-center gap-2.5 shrink-0">
@@ -60,18 +66,18 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
           </div>
           <div>
             <div className="flex items-center gap-1.5 leading-none">
-              <span className="text-xs font-bold tracking-tight text-white uppercase">
+              <span className="text-xs font-bold tracking-tight text-slate-900 dark:text-white uppercase">
                 StagePlot
               </span>
-              <span className="text-[10px] px-1 py-0.2 rounded bg-sky-500/20 text-sky-400 font-mono font-semibold">
+              <span className="text-[10px] px-1 py-0.2 rounded bg-sky-500/15 text-sky-600 dark:text-sky-400 font-mono font-semibold">
                 BUILDER
               </span>
             </div>
-            <span className="text-[10px] text-studio-400 leading-none">Live Sound Reinforcement</span>
+            <span className="text-[10px] text-slate-500 dark:text-studio-400 leading-none">Live Sound Reinforcement</span>
           </div>
         </div>
 
-        <div className="h-6 w-px bg-studio-800 shrink-0" />
+        <div className="h-6 w-px bg-slate-200 dark:bg-studio-800 shrink-0" />
 
         <div className="flex items-center gap-2 min-w-0">
           {isEditingTitle ? (
@@ -82,19 +88,19 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
               onChange={(e) => setMetadata({ name: e.target.value })}
               onBlur={() => setIsEditingTitle(false)}
               onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
-              className="bg-studio-950 border border-sky-500 rounded px-2 py-0.5 text-xs text-white font-semibold focus:outline-none w-48"
+              className="bg-slate-100 dark:bg-studio-950 border border-sky-500 rounded px-2 py-0.5 text-xs text-slate-900 dark:text-white font-semibold focus:outline-none w-48"
             />
           ) : (
             <button
               type="button"
               onClick={() => setIsEditingTitle(true)}
-              className="flex items-center gap-1.5 group text-left max-w-xs hover:bg-studio-800 px-2 py-1 rounded transition-colors"
+              className="flex items-center gap-1.5 group text-left max-w-xs hover:bg-slate-100 dark:hover:bg-studio-800 px-2 py-1 rounded transition-colors"
               title="Click to rename project"
             >
-              <span className="text-xs font-semibold text-studio-200 group-hover:text-white truncate">
+              <span className="text-xs font-semibold text-slate-700 dark:text-studio-200 group-hover:text-slate-900 dark:group-hover:text-white truncate">
                 {metadata.name || 'Untitled Stage Plot'}
               </span>
-              <Edit3 size={12} className="opacity-0 group-hover:opacity-100 text-studio-400 shrink-0" />
+              <Edit3 size={12} className="opacity-0 group-hover:opacity-100 text-slate-400 dark:text-studio-400 shrink-0" />
             </button>
           )}
         </div>
@@ -102,28 +108,28 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
 
       {/* Center: Template Switcher & Undo/Redo */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 bg-studio-950 border border-studio-750 rounded-lg px-2.5 py-1">
-          <span className="text-[10px] font-mono uppercase text-studio-400">Venue:</span>
+        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-studio-950 border border-slate-200 dark:border-studio-750 rounded-lg px-2.5 py-1">
+          <span className="text-[10px] font-mono uppercase text-slate-500 dark:text-studio-400">Venue:</span>
           <select
             value={templateId}
             onChange={(e) => setTemplateId(e.target.value)}
-            className="bg-transparent text-xs font-semibold text-studio-100 focus:outline-none cursor-pointer"
+            className="bg-transparent text-xs font-semibold text-slate-800 dark:text-studio-100 focus:outline-none cursor-pointer"
           >
             {VENUE_TEMPLATES.map((t) => (
-              <option key={t.id} value={t.id} className="bg-studio-900 text-white">
+              <option key={t.id} value={t.id} className="bg-white dark:bg-studio-900 text-slate-900 dark:text-white">
                 {t.name} ({t.stageDimensions})
               </option>
             ))}
           </select>
         </div>
 
-        <div className="flex items-center bg-studio-950 border border-studio-750 rounded-lg p-0.5">
+        <div className="flex items-center bg-slate-100 dark:bg-studio-950 border border-slate-200 dark:border-studio-750 rounded-lg p-0.5">
           <button
             type="button"
             title="Undo (Ctrl+Z / Cmd+Z)"
             disabled={!canUndo}
             onClick={undo}
-            className="p-1.5 rounded-md hover:bg-studio-800 text-studio-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+            className="p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-studio-800 text-slate-600 dark:text-studio-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
           >
             <Undo2 size={14} />
           </button>
@@ -132,22 +138,44 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
             title="Redo (Ctrl+Shift+Z / Cmd+Shift+Z)"
             disabled={!canRedo}
             onClick={redo}
-            className="p-1.5 rounded-md hover:bg-studio-800 text-studio-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+            className="p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-studio-800 text-slate-600 dark:text-studio-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
           >
             <Redo2 size={14} />
           </button>
         </div>
       </div>
 
-      {/* Right: Canvas Toggles, Zoom, Export, Persistence */}
+      {/* Right: Theme Toggle, Canvas Toggles, Zoom, Export, Persistence */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center bg-studio-950 border border-studio-750 rounded-lg p-0.5">
+        {/* Light / Dark Mode Toggle */}
+        <button
+          type="button"
+          title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
+          onClick={toggleTheme}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-studio-950 hover:bg-slate-200 dark:hover:bg-studio-800 border border-slate-200 dark:border-studio-750 text-slate-700 dark:text-studio-200 text-xs font-semibold transition-colors"
+        >
+          {isDark ? (
+            <>
+              <Sun size={14} className="text-amber-400" />
+              <span className="hidden sm:inline text-[11px]">Light</span>
+            </>
+          ) : (
+            <>
+              <Moon size={14} className="text-sky-600" />
+              <span className="hidden sm:inline text-[11px]">Dark</span>
+            </>
+          )}
+        </button>
+
+        <div className="flex items-center bg-slate-100 dark:bg-studio-950 border border-slate-200 dark:border-studio-750 rounded-lg p-0.5">
           <button
             type="button"
             title={`Toggle Grid (${gridVisible ? 'ON' : 'OFF'})`}
             onClick={toggleGridVisible}
             className={`p-1.5 rounded-md transition-colors ${
-              gridVisible ? 'bg-studio-800 text-sky-400' : 'text-studio-400 hover:text-white'
+              gridVisible
+                ? 'bg-slate-200 dark:bg-studio-800 text-sky-600 dark:text-sky-400'
+                : 'text-slate-500 dark:text-studio-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <GridIcon size={14} />
@@ -157,7 +185,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
             title={`Toggle Snap-to-Grid (${gridSnap ? 'ON' : 'OFF'})`}
             onClick={toggleGridSnap}
             className={`p-1.5 rounded-md transition-colors ${
-              gridSnap ? 'bg-studio-800 text-sky-400' : 'text-studio-400 hover:text-white'
+              gridSnap
+                ? 'bg-slate-200 dark:bg-studio-800 text-sky-600 dark:text-sky-400'
+                : 'text-slate-500 dark:text-studio-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Magnet size={14} />
@@ -167,7 +197,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
             title={`Toggle Smart Guides (${smartGuides ? 'ON' : 'OFF'})`}
             onClick={toggleSmartGuides}
             className={`p-1.5 rounded-md transition-colors ${
-              smartGuides ? 'bg-studio-800 text-pink-400' : 'text-studio-400 hover:text-white'
+              smartGuides
+                ? 'bg-slate-200 dark:bg-studio-800 text-pink-600 dark:text-pink-400'
+                : 'text-slate-500 dark:text-studio-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Sparkles size={14} />
@@ -177,30 +209,32 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
             title={`Toggle Metric Ruler (${rulerVisible ? 'ON' : 'OFF'})`}
             onClick={toggleRulerVisible}
             className={`p-1.5 rounded-md transition-colors ${
-              rulerVisible ? 'bg-studio-800 text-amber-400' : 'text-studio-400 hover:text-white'
+              rulerVisible
+                ? 'bg-slate-200 dark:bg-studio-800 text-amber-600 dark:text-amber-400'
+                : 'text-slate-500 dark:text-studio-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Ruler size={14} />
           </button>
         </div>
 
-        <div className="flex items-center bg-studio-950 border border-studio-750 rounded-lg p-0.5">
+        <div className="flex items-center bg-slate-100 dark:bg-studio-950 border border-slate-200 dark:border-studio-750 rounded-lg p-0.5">
           <button
             type="button"
             title="Zoom Out"
             onClick={() => setStageScale((prev) => prev - 0.1)}
-            className="p-1.5 rounded-md hover:bg-studio-800 text-studio-300 hover:text-white transition-colors"
+            className="p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-studio-800 text-slate-600 dark:text-studio-300 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <ZoomOut size={14} />
           </button>
-          <span className="text-[11px] font-mono px-1.5 text-studio-300 min-w-[42px] text-center">
+          <span className="text-[11px] font-mono px-1.5 text-slate-700 dark:text-studio-300 min-w-[42px] text-center">
             {Math.round(stageScale * 100)}%
           </span>
           <button
             type="button"
             title="Zoom In"
             onClick={() => setStageScale((prev) => prev + 0.1)}
-            className="p-1.5 rounded-md hover:bg-studio-800 text-studio-300 hover:text-white transition-colors"
+            className="p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-studio-800 text-slate-600 dark:text-studio-300 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <ZoomIn size={14} />
           </button>
@@ -208,7 +242,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
             type="button"
             title="Reset View"
             onClick={resetView}
-            className="p-1.5 rounded-md hover:bg-studio-800 text-studio-300 hover:text-white transition-colors"
+            className="p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-studio-800 text-slate-600 dark:text-studio-300 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <Maximize size={14} />
           </button>
@@ -217,9 +251,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
         <button
           type="button"
           onClick={() => setIsAuthOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-studio-850 hover:bg-studio-800 border border-studio-700 text-studio-200 text-xs font-semibold transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-studio-850 hover:bg-slate-200 dark:hover:bg-studio-800 border border-slate-200 dark:border-studio-700 text-slate-700 dark:text-studio-200 text-xs font-semibold transition-colors"
         >
-          <FolderOpen size={14} className="text-sky-400" />
+          <FolderOpen size={14} className="text-sky-600 dark:text-sky-400" />
           <span>Projects</span>
         </button>
 
