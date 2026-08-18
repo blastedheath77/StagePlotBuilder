@@ -108,7 +108,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
     createdAt: Date.now(),
     updatedAt: Date.now(),
   },
-  elements: initialTemplate.defaultElements ? JSON.parse(JSON.stringify(initialTemplate.defaultElements)) : [],
+  elements: [],
   selectedIds: [],
   clipboard: null,
   activeGuides: [],
@@ -127,17 +127,10 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
   setTemplateId: (id: string) => {
     const template = TEMPLATE_MAP.get(id);
     if (!template) return;
-    const current = get();
-    useHistoryStore.getState().pushState(current.elements);
-    const newElements = template.defaultElements ? JSON.parse(JSON.stringify(template.defaultElements)) : [];
+    // Changing venue size preserves all elements on stage
     set({
       templateId: id,
-      elements: newElements,
-      selectedIds: [],
-      canUndo: useHistoryStore.getState().canUndo(),
-      canRedo: useHistoryStore.getState().canRedo(),
     });
-    get().resetView();
   },
 
   setMetadata: (meta) => {
@@ -452,11 +445,9 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
   },
 
   resetToTemplate: () => {
-    const { templateId } = get();
-    const template = TEMPLATE_MAP.get(templateId) || initialTemplate;
     get().recordHistorySnapshot();
     set({
-      elements: template.defaultElements ? JSON.parse(JSON.stringify(template.defaultElements)) : [],
+      elements: [],
       selectedIds: [],
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),

@@ -109,7 +109,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
       {/* Center: Template Switcher & Undo/Redo */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-studio-950 border border-slate-200 dark:border-studio-750 rounded-lg px-2.5 py-1">
-          <span className="text-[10px] font-mono uppercase text-slate-500 dark:text-studio-400">Venue:</span>
+          <span className="text-[10px] font-mono uppercase text-slate-500 dark:text-studio-400">Stage:</span>
           <select
             value={templateId}
             onChange={(e) => setTemplateId(e.target.value)}
@@ -117,7 +117,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
           >
             {VENUE_TEMPLATES.map((t) => (
               <option key={t.id} value={t.id} className="bg-white dark:bg-studio-900 text-slate-900 dark:text-white">
-                {t.name} ({t.stageDimensions})
+                {t.name}
               </option>
             ))}
           </select>
