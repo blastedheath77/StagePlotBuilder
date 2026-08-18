@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Group, Text, Rect, Line } from 'react-konva';
+import { Group, Text, Rect } from 'react-konva';
 import Konva from 'konva';
 import { StageElement } from '../../types/stage';
 import { ASSET_MAP, CATEGORIES } from '../../config/assetCatalog';
@@ -12,6 +12,7 @@ interface AssetNodeProps {
   isSelected: boolean;
   onSelect: (e: Konva.KonvaEventObject<MouseEvent>) => void;
   onDblClick: (e: Konva.KonvaEventObject<MouseEvent>) => void;
+  onLiveDrag?: (id: string, x: number, y: number) => void;
 }
 
 export const AssetNode: React.FC<AssetNodeProps> = ({
@@ -19,6 +20,7 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
   isSelected,
   onSelect,
   onDblClick,
+  onLiveDrag,
 }) => {
   const groupRef = useRef<Konva.Group>(null);
   const def = ASSET_MAP.get(element.type);
@@ -55,20 +57,35 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
     node.x(snapResult.x);
     node.y(snapResult.y);
     setActiveGuides(snapResult.guides);
+
+    if (onLiveDrag) {
+      onLiveDrag(element.id, snapResult.x, snapResult.y);
+    }
   };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const node = e.target;
     setActiveGuides([]);
+    const finalX = Math.round(node.x());
+    const finalY = Math.round(node.y());
+
+    if (onLiveDrag) {
+      onLiveDrag(element.id, finalX, finalY);
+    }
+
     updateElement(
       element.id,
       {
-        x: Math.round(node.x()),
-        y: Math.round(node.y()),
+        x: finalX,
+        y: finalY,
       },
       true
     );
   };
+
+  // Power drops do not show labels by default for a clean, compact footprint
+  const isPowerDrop = element.type === 'power_drop';
+  const showLabel = !isPowerDrop && Boolean(element.label || def?.name);
 
   const labelText = element.label || def?.name || element.type;
   const estimatedCharWidth = 6.2;
@@ -94,52 +111,49 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
     >
       {isSelected && (
         <Rect
-          x={-width / 2 - 6}
-          y={-height / 2 - 6}
-          width={width + 12}
-          height={height + 12}
+          x={-width / 2 - 5}
+          y={-height / 2 - 5}
+          width={width + 10}
+          height={height + 10}
           stroke="#38bdf8"
-          strokeWidth={2}
+          strokeWidth={1.5}
           dash={[4, 3]}
-          cornerRadius={6}
+          cornerRadius={4}
           fill="rgba(56, 189, 248, 0.08)"
         />
       )}
 
       <AssetShape type={element.type} width={width} height={height} isSelected={isSelected} />
 
-      <Line
-        points={[0, -height / 2, 0, -height / 2 - 4]}
-        stroke={category?.color || '#94a3b8'}
-        strokeWidth={2}
-      />
-
-      <Group y={labelOffsetY} listening={false}>
-        <Rect
-          x={-textWidth / 2}
-          y={-textHeight / 2}
-          width={textWidth}
-          height={textHeight}
-          fill="rgba(15, 23, 42, 0.92)"
-          stroke={isSelected ? '#38bdf8' : category?.color || '#475569'}
-          strokeWidth={1}
-          cornerRadius={3}
-        />
-        <Text
-          x={-textWidth / 2}
-          y={-textHeight / 2 + 3}
-          width={textWidth}
-          height={textHeight}
-          text={labelText}
-          fontSize={9.5}
-          fontFamily="Inter, sans-serif"
-          fontStyle="500"
-          fill="#f8fafc"
-          align="center"
-          verticalAlign="middle"
-          ellipsis={true}
-        />
-      </Group>
+      {/* Label Pill (hidden on power drops) */}
+      {showLabel && (
+        <Group y={labelOffsetY} listening={false}>
+          <Rect
+            x={-textWidth / 2}
+            y={-textHeight / 2}
+            width={textWidth}
+            height={textHeight}
+            fill="rgba(15, 23, 42, 0.92)"
+            stroke={isSelected ? '#38bdf8' : category?.color || '#475569'}
+            strokeWidth={1}
+            cornerRadius={3}
+          />
+          <Text
+            x={-textWidth / 2}
+            y={-textHeight / 2 + 3}
+            width={textWidth}
+            height={textHeight}
+            text={labelText}
+            fontSize={9.5}
+            fontFamily="Inter, sans-serif"
+            fontStyle="500"
+            fill="#f8fafc"
+            align="center"
+            verticalAlign="middle"
+            ellipsis={true}
+          />
+        </Group>
+      )}
     </Group>
   );
 };

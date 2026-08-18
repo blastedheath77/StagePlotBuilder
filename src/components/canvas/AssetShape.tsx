@@ -481,19 +481,24 @@ export const AssetShape: React.FC<AssetShapeProps> = ({ type, width, height }) =
     case 'power_drop':
       return (
         <Group x={-halfW} y={-halfH}>
+          {/* Compact Portable Power Drop Symbol */}
           <Rect
             width={width}
             height={height}
-            fill="#78350f"
+            fill="#1e1b0c"
             stroke="#f59e0b"
             strokeWidth={2}
-            cornerRadius={4}
+            cornerRadius={6}
+            shadowColor="#f59e0b"
+            shadowBlur={3}
+            shadowOpacity={0.3}
           />
+          {/* Lightning Bolt Symbol */}
           <Path
-            data={`M ${width * 0.55} ${height * 0.18} L ${width * 0.32} ${height * 0.52} L ${width * 0.52} ${height * 0.52} L ${width * 0.42} ${height * 0.82} L ${width * 0.72} ${height * 0.44} L ${width * 0.52} ${height * 0.44} Z`}
+            data={`M ${width * 0.58} ${height * 0.16} L ${width * 0.28} ${height * 0.52} L ${width * 0.52} ${height * 0.52} L ${width * 0.42} ${height * 0.84} L ${width * 0.74} ${height * 0.44} L ${width * 0.52} ${height * 0.44} Z`}
             fill="#fbbf24"
             stroke="#f59e0b"
-            strokeWidth={0.8}
+            strokeWidth={0.5}
           />
         </Group>
       );

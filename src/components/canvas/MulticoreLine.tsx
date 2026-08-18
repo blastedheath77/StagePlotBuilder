@@ -1,37 +1,49 @@
 import React from 'react';
 import { Group, Line, Circle, Rect, Text } from 'react-konva';
-import { StageElement } from '../../types/stage';
 
 interface MulticoreLineProps {
-  fohElement: StageElement;
-  stageBoxElement: StageElement;
+  fohPos: { x: number; y: number };
+  stageBoxPos: { x: number; y: number };
+  canvasWidth: number;
 }
 
 export const MulticoreLine: React.FC<MulticoreLineProps> = ({
-  fohElement,
-  stageBoxElement,
+  fohPos,
+  stageBoxPos,
+  canvasWidth,
 }) => {
-  const x1 = fohElement.x;
-  const y1 = fohElement.y;
-  const x2 = stageBoxElement.x;
-  const y2 = stageBoxElement.y;
+  const x1 = fohPos.x;
+  const y1 = fohPos.y;
+  const x2 = stageBoxPos.x;
+  const y2 = stageBoxPos.y;
 
-  // Middle point for label
-  const midX = (x1 + x2) / 2;
-  const midY = (y1 + y2) / 2;
+  // Decide perimeter side based on Stage Box position
+  const isRightSide = x2 >= canvasWidth / 2 || x2 >= x1;
+  const wallMargin = 55;
+  const wallX = isRightSide
+    ? Math.min(Math.max(x2 + 35, canvasWidth - wallMargin), canvasWidth - 25)
+    : Math.max(Math.min(x2 - 35, wallMargin), 25);
 
-  // Calculate subtle curved / segmented routing points
-  // For stage diagrams, routing via vertical-horizontal or direct high-contrast line with subtle bezier
-  const points = [x1, y1, x2, y2];
+  // Generate 4-point perimeter route: Stage Box -> Perimeter Wall -> Down past Audience -> FOH Desk
+  const points = [
+    x2, y2,           // Stage Box anchor
+    wallX, y2,        // Horizontal out to side wall
+    wallX, y1,        // Vertical run down along wall
+    x1, y1,           // Horizontal run into FOH Desk
+  ];
+
+  // Middle of the vertical wall run for the MULTICORE label
+  const labelX = wallX + (isRightSide ? -48 : 48);
+  const labelY = (y2 + y1) / 2;
 
   return (
     <Group listening={false}>
       {/* Outer Glow */}
       <Line
         points={points}
-        stroke="#ec4899" // High-contrast hot pink / magenta
+        stroke="#ec4899"
         strokeWidth={7}
-        opacity={0.25}
+        opacity={0.2}
         lineCap="round"
         lineJoin="round"
       />
@@ -55,6 +67,22 @@ export const MulticoreLine: React.FC<MulticoreLineProps> = ({
         lineJoin="round"
       />
 
+      {/* Corner Cable Turn Nodes */}
+      <Circle
+        x={wallX}
+        y={y2}
+        radius={3}
+        fill="#ec4899"
+        opacity={0.8}
+      />
+      <Circle
+        x={wallX}
+        y={y1}
+        radius={3}
+        fill="#ec4899"
+        opacity={0.8}
+      />
+
       {/* FOH Anchor Terminal Node */}
       <Circle
         x={x1}
@@ -75,8 +103,8 @@ export const MulticoreLine: React.FC<MulticoreLineProps> = ({
         strokeWidth={2}
       />
 
-      {/* Cable Identifier Tag */}
-      <Group x={midX} y={midY}>
+      {/* Cable Identifier Tag on Wall Run */}
+      <Group x={labelX} y={labelY}>
         <Rect
           x={-44}
           y={-10}

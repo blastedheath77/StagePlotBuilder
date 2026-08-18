@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Stage, Layer, Transformer } from 'react-konva';
 import Konva from 'konva';
 import { useStageStore } from '../../store/useStageStore';
@@ -55,6 +55,9 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [panStartStagePos, setPanStartStagePos] = useState({ x: 0, y: 0 });
+
+  // Live element positions for real-time multicore cable drag tracking
+  const [livePositions, setLivePositions] = useState<Record<string, { x: number; y: number }>>({});
 
   // Stage container dimensions
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -117,9 +120,24 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
     transformerRef.current.getLayer()?.batchDraw();
   }, [selectedIds, elements, stageRef]);
 
-  // Multicore connection
+  // Multicore connection nodes
   const fohDesk = elements.find((e) => e.type === 'foh_console');
   const stageBox = elements.find((e) => e.type === 'stage_box');
+
+  const fohPos = fohDesk
+    ? livePositions[fohDesk.id] || { x: fohDesk.x, y: fohDesk.y }
+    : null;
+
+  const stageBoxPos = stageBox
+    ? livePositions[stageBox.id] || { x: stageBox.x, y: stageBox.y }
+    : null;
+
+  const handleLiveDrag = useCallback((id: string, x: number, y: number) => {
+    setLivePositions((prev) => ({
+      ...prev,
+      [id]: { x, y },
+    }));
+  }, []);
 
   // Wheel zoom
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
@@ -332,8 +350,12 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
         </Layer>
 
         <Layer>
-          {fohDesk && stageBox && (
-            <MulticoreLine fohElement={fohDesk} stageBoxElement={stageBox} />
+          {fohPos && stageBoxPos && (
+            <MulticoreLine
+              fohPos={fohPos}
+              stageBoxPos={stageBoxPos}
+              canvasWidth={template.canvasWidth}
+            />
           )}
         </Layer>
 
@@ -356,14 +378,17 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
                   e.cancelBubble = true;
                   setEditingLabelId(el.id);
                 }}
+                onLiveDrag={handleLiveDrag}
               />
             );
           })}
 
+          {/* Konva Transformer with Corner Rotation Handles (No extended stick line) */}
           <Transformer
             ref={transformerRef}
             rotateEnabled={true}
-            enabledAnchors={[]}
+            rotateAnchorOffset={0}
+            enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
             rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
             rotationSnapTolerance={10}
             borderStroke="#38bdf8"
@@ -371,8 +396,8 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
             borderDash={[4, 3]}
             anchorStroke="#38bdf8"
             anchorFill="#0f172a"
-            anchorSize={9}
-            anchorCornerRadius={2}
+            anchorSize={8}
+            anchorCornerRadius={4}
             onTransformEnd={handleTransformEnd}
           />
 

@@ -49,7 +49,6 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
   };
 
   const handleClickAdd = () => {
-    // Add near center of current view
     const canvasCenterX = (window.innerWidth / 2 - 150 - stagePos.x) / stageScale;
     const canvasCenterY = (window.innerHeight / 2 - 80 - stagePos.y) / stageScale;
     addElement(asset.id, Math.max(100, canvasCenterX), Math.max(100, canvasCenterY));
@@ -60,40 +59,21 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
       draggable
       onDragStart={handleDragStart}
       onClick={handleClickAdd}
-      className={`group relative flex items-center justify-between p-2.5 rounded-lg border border-studio-800 bg-studio-900/80 hover:bg-studio-850 hover:border-studio-700 transition-all cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.01]`}
+      className="group relative flex items-center justify-between py-2 px-2.5 rounded-lg border border-studio-800 bg-studio-900/80 hover:bg-studio-850 hover:border-studio-700 transition-all cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.01]"
     >
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-2.5 min-w-0">
         {/* Category Accent Icon Container */}
         <div
-          className={`w-9 h-9 rounded-md flex items-center justify-center border shrink-0 transition-transform group-hover:scale-105 ${category.accentBg} ${category.borderColor}`}
+          className={`w-7 h-7 rounded-md flex items-center justify-center border shrink-0 transition-transform group-hover:scale-105 ${category.accentBg} ${category.borderColor}`}
           style={{ color: category.color }}
         >
-          <IconComponent size={18} />
+          <IconComponent size={15} />
         </div>
 
-        {/* Info */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-studio-100 group-hover:text-white truncate">
-              {asset.name}
-            </span>
-            {asset.badgeText && (
-              <span
-                className="text-[9px] font-mono px-1 py-0.2 rounded border font-bold uppercase tracking-wider"
-                style={{
-                  color: category.color,
-                  borderColor: `${category.color}40`,
-                  backgroundColor: `${category.color}15`,
-                }}
-              >
-                {asset.badgeText}
-              </span>
-            )}
-          </div>
-          <p className="text-[10.5px] text-studio-400 truncate">
-            {asset.realWidthMeters}m × {asset.realHeightMeters}m &bull; {asset.description}
-          </p>
-        </div>
+        {/* Asset Name Only */}
+        <span className="text-xs font-medium text-studio-200 group-hover:text-white truncate">
+          {asset.name}
+        </span>
       </div>
 
       {/* Quick Add Button */}
@@ -106,7 +86,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
           handleClickAdd();
         }}
       >
-        <Plus size={13} />
+        <Plus size={12} />
       </button>
     </div>
   );
