@@ -19,6 +19,9 @@ import {
   Edit3,
   Sun,
   Moon,
+  RefreshCw,
+  HardDrive,
+  AlertCircle,
 } from 'lucide-react';
 
 interface TopHeaderProps {
@@ -27,11 +30,14 @@ interface TopHeaderProps {
 
 export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authInitialTab, setAuthInitialTab] = useState<'projects' | 'signin' | 'signup'>('projects');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   // Store state
   const theme = useStageStore((s) => s.theme);
   const toggleTheme = useStageStore((s) => s.toggleTheme);
+  const user = useStageStore((s) => s.user);
+  const syncStatus = useStageStore((s) => s.syncStatus);
   const templateId = useStageStore((s) => s.templateId);
   const metadata = useStageStore((s) => s.metadata);
   const stageScale = useStageStore((s) => s.stageScale);
@@ -55,6 +61,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
   const redo = useStageStore((s) => s.redo);
 
   const isDark = theme === 'dark';
+
+  const openProjects = (tab: 'projects' | 'signin' = 'projects') => {
+    setAuthInitialTab(tab);
+    setIsAuthOpen(true);
+  };
 
   return (
     <header className="h-14 bg-white dark:bg-studio-900 border-b border-slate-200 dark:border-studio-800 px-4 flex items-center justify-between select-none z-30 shrink-0 transition-colors duration-200">
@@ -103,10 +114,51 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
               <Edit3 size={12} className="opacity-0 group-hover:opacity-100 text-slate-400 dark:text-studio-400 shrink-0" />
             </button>
           )}
+
+          {/* Auto-Save Status Pill */}
+          <button
+            type="button"
+            onClick={() => openProjects(user ? 'projects' : 'signin')}
+            className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono transition-colors border shrink-0 bg-slate-100/80 dark:bg-studio-950/80 border-slate-200 dark:border-studio-800 hover:border-sky-500/50"
+            title={
+              syncStatus === 'saving'
+                ? 'Saving changes...'
+                : syncStatus === 'saved'
+                ? 'All changes automatically saved to Cloud'
+                : syncStatus === 'error'
+                ? 'Sync failed, saved locally. Click to retry'
+                : 'Saved to LocalStorage. Sign in to enable multi-device cloud sync'
+            }
+          >
+            {syncStatus === 'saving' && (
+              <>
+                <RefreshCw size={10} className="text-amber-500 animate-spin" />
+                <span className="text-amber-600 dark:text-amber-400">Saving...</span>
+              </>
+            )}
+            {syncStatus === 'saved' && (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-emerald-600 dark:text-emerald-400">Saved</span>
+              </>
+            )}
+            {syncStatus === 'offline' && (
+              <>
+                <HardDrive size={10} className="text-slate-400" />
+                <span className="text-slate-500 dark:text-studio-400">Local Draft</span>
+              </>
+            )}
+            {syncStatus === 'error' && (
+              <>
+                <AlertCircle size={10} className="text-red-500" />
+                <span className="text-red-500">Offline</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Center: Template Switcher & Undo/Redo */}
+      {/* Center: Stage Dimension Switcher & Undo/Redo */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-studio-950 border border-slate-200 dark:border-studio-750 rounded-lg px-2.5 py-1">
           <span className="text-[10px] font-mono uppercase text-slate-500 dark:text-studio-400">Stage:</span>
@@ -248,19 +300,37 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ stageRef }) => {
           </button>
         </div>
 
+        {/* Projects / User Account Button */}
         <button
           type="button"
-          onClick={() => setIsAuthOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-studio-850 hover:bg-slate-200 dark:hover:bg-studio-800 border border-slate-200 dark:border-studio-700 text-slate-700 dark:text-studio-200 text-xs font-semibold transition-colors"
+          onClick={() => openProjects(user ? 'projects' : 'signin')}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-studio-850 hover:bg-slate-200 dark:hover:bg-studio-800 border border-slate-200 dark:border-studio-700 text-slate-700 dark:text-studio-200 text-xs font-semibold transition-colors"
         >
-          <FolderOpen size={14} className="text-sky-600 dark:text-sky-400" />
-          <span>Projects</span>
+          {user ? (
+            <>
+              <div className="w-5 h-5 rounded-full bg-sky-500 text-white font-bold text-[10px] flex items-center justify-center">
+                {user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <span className="hidden sm:inline max-w-[100px] truncate">
+                {user.displayName || user.email?.split('@')[0] || 'Projects'}
+              </span>
+            </>
+          ) : (
+            <>
+              <FolderOpen size={14} className="text-sky-600 dark:text-sky-400" />
+              <span>Projects</span>
+            </>
+          )}
         </button>
 
         <ExportMenu stageRef={stageRef} />
       </div>
 
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        initialTab={authInitialTab}
+      />
     </header>
   );
 };

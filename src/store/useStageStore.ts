@@ -11,18 +11,28 @@ import { VENUE_TEMPLATES, TEMPLATE_MAP } from '../assets/templates';
 import { ASSET_MAP } from '../config/assetCatalog';
 import { useHistoryStore } from './useHistoryStore';
 import { StorageService } from '../services/storageService';
+import { User, isFirebaseConfigured } from '../config/firebase';
 
 export type AppTheme = 'dark' | 'light';
+export type SyncStatus = 'saved' | 'saving' | 'offline' | 'error';
 
 interface StageStoreState {
   theme: AppTheme;
   setTheme: (theme: AppTheme) => void;
   toggleTheme: () => void;
 
+  user: User | null;
+  setUser: (user: User | null) => void;
+
+  syncStatus: SyncStatus;
+  lastSavedAt: number | null;
+  setSyncStatus: (status: SyncStatus) => void;
+
   templateId: string;
   metadata: ProjectMetadata;
   setTemplateId: (id: string) => void;
   setMetadata: (meta: Partial<ProjectMetadata>) => void;
+  createNewProject: (name?: string) => void;
 
   elements: StageElement[];
   selectedIds: string[];
@@ -73,6 +83,7 @@ interface StageStoreState {
 
   getConnections: () => MulticoreConnection[];
 
+  triggerAutoSave: () => void;
   getExportData: () => StagePlotExportSchema;
   loadFromData: (data: StagePlotExportSchema, meta?: Partial<ProjectMetadata>) => void;
   resetToTemplate: () => void;
@@ -80,6 +91,8 @@ interface StageStoreState {
 
 const initialTemplate = VENUE_TEMPLATES[0];
 const initialTheme: AppTheme = (localStorage.getItem('stageplot_theme') as AppTheme) || 'dark';
+
+let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useStageStore = create<StageStoreState>((set, get) => ({
   theme: initialTheme,
@@ -96,6 +109,18 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
     const nextTheme: AppTheme = get().theme === 'dark' ? 'light' : 'dark';
     get().setTheme(nextTheme);
   },
+
+  user: null,
+  setUser: (user) => {
+    set({
+      user,
+      syncStatus: user && isFirebaseConfigured ? 'saved' : 'offline',
+    });
+  },
+
+  syncStatus: isFirebaseConfigured ? 'offline' : 'offline',
+  lastSavedAt: null,
+  setSyncStatus: (status) => set({ syncStatus: status }),
 
   templateId: initialTemplate.id,
   metadata: {
@@ -124,21 +149,72 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
   canUndo: false,
   canRedo: false,
 
+  triggerAutoSave: () => {
+    const state = get();
+    const exportData = state.getExportData();
+    const metadata = { ...state.metadata, updatedAt: Date.now() };
+
+    // Instant local mirror at 0ms
+    StorageService.saveActiveState(exportData, metadata);
+
+    // Debounced Cloud Save
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+
+    set({ syncStatus: 'saving' });
+
+    autoSaveTimer = setTimeout(async () => {
+      try {
+        const current = get();
+        await StorageService.saveProject(metadata, exportData, current.user);
+        set({
+          syncStatus: current.user && isFirebaseConfigured ? 'saved' : 'offline',
+          lastSavedAt: Date.now(),
+        });
+      } catch {
+        set({ syncStatus: 'error' });
+      }
+    }, 1500);
+  },
+
   setTemplateId: (id: string) => {
     const template = TEMPLATE_MAP.get(id);
     if (!template) return;
-    // Changing venue size preserves all elements on stage
-    set({
-      templateId: id,
-    });
+    set({ templateId: id });
+    get().triggerAutoSave();
   },
 
   setMetadata: (meta) => {
-    set((state) => {
-      const updated = { ...state.metadata, ...meta, updatedAt: Date.now() };
-      StorageService.saveActiveState(get().getExportData(), updated);
-      return { metadata: updated };
+    set((state) => ({
+      metadata: { ...state.metadata, ...meta, updatedAt: Date.now() },
+    }));
+    get().triggerAutoSave();
+  },
+
+  createNewProject: (name = 'New Stage Plot') => {
+    useHistoryStore.getState().clearHistory();
+    const newId = `plot_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const newMeta: ProjectMetadata = {
+      id: newId,
+      name,
+      venueName: '',
+      engineerName: '',
+      bandName: '',
+      notes: '',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      ownerId: get().user?.uid,
+    };
+    set({
+      metadata: newMeta,
+      elements: [],
+      selectedIds: [],
+      canUndo: false,
+      canRedo: false,
     });
+    get().resetView();
+    get().triggerAutoSave();
   },
 
   setStageScale: (scale) => {
@@ -217,6 +293,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       canRedo: useHistoryStore.getState().canRedo(),
     }));
 
+    get().triggerAutoSave();
     return newId;
   },
 
@@ -231,6 +308,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),
     }));
+    get().triggerAutoSave();
   },
 
   updateMultipleElements: (updates, recordHistory = false) => {
@@ -246,6 +324,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),
     }));
+    get().triggerAutoSave();
   },
 
   setColorTintSelected: (colorTint) => {
@@ -261,6 +340,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),
     }));
+    get().triggerAutoSave();
   },
 
   deleteSelected: () => {
@@ -275,6 +355,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),
     }));
+    get().triggerAutoSave();
   },
 
   deleteElement: (id) => {
@@ -285,6 +366,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),
     }));
+    get().triggerAutoSave();
   },
 
   rotateSelected: (degreesStep = 45) => {
@@ -302,6 +384,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),
     }));
+    get().triggerAutoSave();
   },
 
   setElementRotation: (id, rotation) => {
@@ -310,6 +393,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
         el.id === id ? { ...el, rotation: (rotation % 360 + 360) % 360 } : el
       ),
     }));
+    get().triggerAutoSave();
   },
 
   copySelected: () => {
@@ -349,6 +433,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),
     }));
+    get().triggerAutoSave();
   },
 
   duplicateSelected: () => {
@@ -366,6 +451,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
         canUndo: useHistoryStore.getState().canUndo(),
         canRedo: useHistoryStore.getState().canRedo(),
       });
+      get().triggerAutoSave();
     }
   },
 
@@ -379,6 +465,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
         canUndo: useHistoryStore.getState().canUndo(),
         canRedo: useHistoryStore.getState().canRedo(),
       });
+      get().triggerAutoSave();
     }
   },
 
@@ -420,6 +507,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
   loadFromData: (data, meta) => {
     useHistoryStore.getState().clearHistory();
     const template = TEMPLATE_MAP.get(data.templateId) || initialTemplate;
+    const newMetadata = meta ? { ...get().metadata, ...meta, updatedAt: Date.now() } : get().metadata;
     set({
       templateId: template.id,
       elements: data.elements.map((el) => {
@@ -437,11 +525,12 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
         };
       }),
       selectedIds: [],
-      metadata: meta ? { ...get().metadata, ...meta, updatedAt: Date.now() } : get().metadata,
+      metadata: newMetadata,
       canUndo: false,
       canRedo: false,
     });
     get().resetView();
+    get().triggerAutoSave();
   },
 
   resetToTemplate: () => {
@@ -452,5 +541,6 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),
     });
+    get().triggerAutoSave();
   },
 }));
