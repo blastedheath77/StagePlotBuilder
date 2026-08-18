@@ -50,6 +50,12 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
   const [marqueeStart, setMarqueeStart] = useState({ x: 0, y: 0 });
   const [marqueeRect, setMarqueeRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
+  // Panning navigation state (Right-click drag, Middle-click drag, or Space + Left-drag)
+  const [isPanning, setIsPanning] = useState(false);
+  const [isSpacePressed, setIsSpacePressed] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [panStartStagePos, setPanStartStagePos] = useState({ x: 0, y: 0 });
+
   // Stage container dimensions
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
@@ -65,6 +71,32 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
     updateSize();
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  // Space key handler for Pan navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+      if (e.code === 'Space' && !e.repeat) {
+        setIsSpacePressed(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        setIsSpacePressed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, []);
 
   // Update Transformer nodes on selection change
@@ -118,9 +150,21 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
     setStagePos(newPos);
   };
 
-  // Stage pointer down
+  // Pointer Down: Right-click / Middle-click / Space-drag starts Pan, Left-click starts Marquee on empty area
   const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (e.target === e.target.getStage() || e.target.name() === 'venue-bg') {
+    const isRightClick = e.evt.button === 2;
+    const isMiddleClick = e.evt.button === 1;
+    const isSpacePan = isSpacePressed && e.evt.button === 0;
+
+    if (isRightClick || isMiddleClick || isSpacePan) {
+      e.evt.preventDefault();
+      setIsPanning(true);
+      setPanStart({ x: e.evt.clientX, y: e.evt.clientY });
+      setPanStartStagePos({ x: stagePos.x, y: stagePos.y });
+      return;
+    }
+
+    if (e.evt.button === 0 && (e.target === e.target.getStage() || e.target.name() === 'venue-bg')) {
       if (!e.evt.shiftKey) {
         clearSelection();
       }
@@ -139,26 +183,43 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
     }
   };
 
-  const handleStageMouseMove = () => {
-    if (!isMarqueeSelecting || !stageRef.current) return;
-
-    const stage = stageRef.current;
-    const transform = stage.getAbsoluteTransform().copy().invert();
-    const pos = stage.getPointerPosition();
-    if (pos) {
-      const stageCoords = transform.point(pos);
-      const width = stageCoords.x - marqueeStart.x;
-      const height = stageCoords.y - marqueeStart.y;
-      setMarqueeRect({
-        x: marqueeStart.x,
-        y: marqueeStart.y,
-        width,
-        height,
+  // Pointer Move
+  const handleStageMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (isPanning) {
+      const dx = e.evt.clientX - panStart.x;
+      const dy = e.evt.clientY - panStart.y;
+      setStagePos({
+        x: Math.round(panStartStagePos.x + dx),
+        y: Math.round(panStartStagePos.y + dy),
       });
+      return;
+    }
+
+    if (isMarqueeSelecting && stageRef.current) {
+      const stage = stageRef.current;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const pos = stage.getPointerPosition();
+      if (pos) {
+        const stageCoords = transform.point(pos);
+        const width = stageCoords.x - marqueeStart.x;
+        const height = stageCoords.y - marqueeStart.y;
+        setMarqueeRect({
+          x: marqueeStart.x,
+          y: marqueeStart.y,
+          width,
+          height,
+        });
+      }
     }
   };
 
+  // Pointer Up
   const handleStageMouseUp = () => {
+    if (isPanning) {
+      setIsPanning(false);
+      return;
+    }
+
     if (isMarqueeSelecting) {
       setIsMarqueeSelecting(false);
       const minX = Math.min(marqueeRect.x, marqueeRect.x + marqueeRect.width);
@@ -231,10 +292,17 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
     });
   };
 
+  const cursorClass = isPanning
+    ? 'cursor-grabbing'
+    : isSpacePressed
+    ? 'cursor-grab'
+    : 'cursor-crosshair';
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-studio-950 overflow-hidden cursor-crosshair select-none"
+      className={`relative w-full h-full bg-studio-950 overflow-hidden select-none ${cursorClass}`}
+      onContextMenu={(e) => e.preventDefault()}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
@@ -246,16 +314,11 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
         scaleY={stageScale}
         x={stagePos.x}
         y={stagePos.y}
-        draggable={!isMarqueeSelecting}
         onWheel={handleWheel}
         onMouseDown={handleStageMouseDown}
         onMouseMove={handleStageMouseMove}
         onMouseUp={handleStageMouseUp}
-        onDragEnd={(e) => {
-          if (e.target === stageRef.current) {
-            setStagePos({ x: e.target.x(), y: e.target.y() });
-          }
-        }}
+        onContextMenu={(e) => e.evt.preventDefault()}
       >
         <Layer>
           <VenueLayer template={template} />
@@ -283,6 +346,9 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
                 element={el}
                 isSelected={isSelected}
                 onSelect={(e) => {
+                  if (e.evt.button === 2 || e.evt.button === 1 || isSpacePressed) {
+                    return;
+                  }
                   e.cancelBubble = true;
                   toggleSelectId(el.id, e.evt.shiftKey);
                 }}

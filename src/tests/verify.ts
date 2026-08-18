@@ -1,5 +1,5 @@
 import { ASSET_CATALOG, ASSET_MAP, CATEGORIES } from '../config/assetCatalog';
-import { VENUE_TEMPLATES, TEMPLATE_MAP } from '../assets/templates';
+import { VENUE_TEMPLATES } from '../assets/templates';
 import { AlignmentService } from '../services/alignmentService';
 import { ExportService } from '../services/exportService';
 import { useHistoryStore } from '../store/useHistoryStore';
