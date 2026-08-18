@@ -19,7 +19,7 @@ export const CATEGORIES: Record<AssetCategory, CategoryDefinition> = {
   },
   backline: {
     id: 'backline',
-    name: 'Backline & Instruments',
+    name: 'Backline & Vocals',
     color: '#10b981', // Emerald Green
     textColor: 'text-emerald-400',
     borderColor: 'border-emerald-500/40',
@@ -110,7 +110,21 @@ export const ASSET_CATALOG: AssetDefinition[] = [
     badgeText: 'FILL',
   },
 
-  // Backline & Instruments
+  // Backline & Vocals
+  {
+    id: 'microphone',
+    name: 'Microphone Stand',
+    category: 'backline',
+    defaultLabel: 'Lead Vox Mic',
+    width: 34,
+    height: 34,
+    realWidthMeters: 0.4,
+    realHeightMeters: 0.4,
+    iconName: 'Mic',
+    description: 'Circular microphone stand with boom & cardioid capsule',
+    colorAccent: '#10b981',
+    badgeText: 'MIC',
+  },
   {
     id: 'drum_kit',
     name: 'Drum Kit',

@@ -6,6 +6,7 @@ export type AssetTypeId =
   | 'foh_console'
   | 'foldback_wedge'
   | 'side_fill'
+  | 'microphone'
   | 'drum_kit'
   | 'amp_cab'
   | 'keyboard_rig'

@@ -25,9 +25,18 @@ export const AssetShape: React.FC<AssetShapeProps> = ({
   const backlineColor = colorTint || '#10b981';
   const infraColor = colorTint || '#f59e0b';
 
-  // Render tinted overlay if colorTint is set
-  const renderTintOverlay = () => {
+  const renderTintOverlay = (isCircle = false) => {
     if (!colorTint) return null;
+    if (isCircle) {
+      return (
+        <Circle
+          radius={width / 2}
+          fill={colorTint}
+          opacity={0.16}
+          listening={false}
+        />
+      );
+    }
     return (
       <Rect
         x={-halfW}
@@ -43,6 +52,64 @@ export const AssetShape: React.FC<AssetShapeProps> = ({
   };
 
   switch (type) {
+    case 'microphone':
+      return (
+        <Group>
+          {/* Circular Microphone Base */}
+          <Circle
+            x={0}
+            y={0}
+            radius={width / 2 - 2}
+            fill="#1e293b"
+            stroke={backlineColor}
+            strokeWidth={2}
+            shadowColor="#000"
+            shadowBlur={4}
+            shadowOpacity={0.4}
+          />
+          {/* Inner Base Concentric Ring */}
+          <Circle
+            x={0}
+            y={0}
+            radius={width * 0.26}
+            fill="#0f172a"
+            stroke={backlineColor}
+            strokeWidth={1}
+          />
+          {/* Center Stand Post / Joint */}
+          <Circle
+            x={0}
+            y={0}
+            radius={3.5}
+            fill={backlineColor}
+          />
+          {/* Boom Arm pointing up */}
+          <Line
+            points={[0, 0, 0, -width * 0.38]}
+            stroke={backlineColor}
+            strokeWidth={2.5}
+            lineCap="round"
+          />
+          {/* Microphone Capsule Head */}
+          <Circle
+            x={0}
+            y={-width * 0.38}
+            radius={4.5}
+            fill="#f8fafc"
+            stroke={backlineColor}
+            strokeWidth={1.5}
+          />
+          {/* Directional Sound Wave Indicator Arc */}
+          <Path
+            data={`M -6 ${-width * 0.44} A 7 7 0 0 1 6 ${-width * 0.44}`}
+            stroke={backlineColor}
+            strokeWidth={1.2}
+            opacity={0.85}
+          />
+          {renderTintOverlay(true)}
+        </Group>
+      );
+
     case 'main_pa_speaker':
       return (
         <Group>

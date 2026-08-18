@@ -7,6 +7,7 @@ import {
   Sliders,
   Volume2,
   Radio,
+  Mic,
   CircleDot,
   Box,
   Grid,
@@ -24,6 +25,7 @@ const iconMap: Record<string, LucideIcon> = {
   Sliders,
   Volume2,
   Radio,
+  Mic,
   CircleDot,
   Box,
   Grid,
@@ -62,7 +64,6 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
       className="group relative flex items-center justify-between py-2 px-2.5 rounded-lg border border-studio-800 bg-studio-900/80 hover:bg-studio-850 hover:border-studio-700 transition-all cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.01]"
     >
       <div className="flex items-center gap-2.5 min-w-0">
-        {/* Category Accent Icon Container */}
         <div
           className={`w-7 h-7 rounded-md flex items-center justify-center border shrink-0 transition-transform group-hover:scale-105 ${category.accentBg} ${category.borderColor}`}
           style={{ color: category.color }}
@@ -70,13 +71,11 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset }) => {
           <IconComponent size={15} />
         </div>
 
-        {/* Asset Name Only */}
         <span className="text-xs font-medium text-studio-200 group-hover:text-white truncate">
           {asset.name}
         </span>
       </div>
 
-      {/* Quick Add Button */}
       <button
         type="button"
         title="Click to add to canvas"

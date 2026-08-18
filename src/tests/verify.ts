@@ -8,13 +8,14 @@ import { StageElement } from '../types/stage';
 console.log('=== RUNNING STAGEPLOT BUILDER VERIFICATION SUITE ===\n');
 
 // 1. Asset Catalog Verification
-console.log('1. Verifying Asset Catalog (11 PRD Assets):');
+console.log('1. Verifying Asset Catalog (12 Assets):');
 const expectedAssetIds = [
   'main_pa_speaker',
   'subwoofer',
   'foh_console',
   'foldback_wedge',
   'side_fill',
+  'microphone',
   'drum_kit',
   'amp_cab',
   'keyboard_rig',
@@ -23,8 +24,8 @@ const expectedAssetIds = [
   'power_drop',
 ];
 
-if (ASSET_CATALOG.length !== 11) {
-  throw new Error(`Expected 11 assets, found ${ASSET_CATALOG.length}`);
+if (ASSET_CATALOG.length !== 12) {
+  throw new Error(`Expected 12 assets, found ${ASSET_CATALOG.length}`);
 }
 
 for (const id of expectedAssetIds) {
@@ -94,7 +95,8 @@ const exportPayload = {
   templateId: 'small_club_01',
   version: '1.0',
   elements: [
-    { id: 'foh_console_1', type: 'foh_console', label: 'M32 FOH', x: 620, y: 780, rotation: 0 },
+    { id: 'foh_console_1', type: 'foh_console', label: 'M32 FOH', x: 620, y: 780, rotation: 0, colorTint: '#ef4444' },
+    { id: 'mic_1', type: 'microphone', label: 'Lead Vox', x: 450, y: 220, rotation: 0 },
     { id: 'stage_box_1', type: 'stage_box', label: 'DL32 Stage Left', x: 710, y: 140, rotation: 0 },
   ],
   connections: [
@@ -104,7 +106,7 @@ const exportPayload = {
 
 const jsonStr = JSON.stringify(exportPayload);
 const parsed = ExportService.parseImportJson(jsonStr);
-if (parsed.templateId !== 'small_club_01' || parsed.elements.length !== 2 || parsed.connections.length !== 1) {
+if (parsed.templateId !== 'small_club_01' || parsed.elements.length !== 3 || parsed.connections.length !== 1) {
   throw new Error('JSON Schema parser mismatch');
 }
 console.log(`  ✓ JSON Schema matches PRD specifications perfectly`);
