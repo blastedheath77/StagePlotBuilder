@@ -9,6 +9,7 @@ export interface StageElement {
   rotation: number; // in degrees: 0, 45, 90, 135, etc.
   width?: number;
   height?: number;
+  colorTint?: string; // Optional custom color tint hex (#ef4444, #10b981, etc.)
 }
 
 export interface MulticoreConnection {
@@ -55,6 +56,7 @@ export interface StagePlotExportSchema {
     x: number;
     y: number;
     rotation: number;
+    colorTint?: string;
   }>;
   connections: Array<{
     type: 'multicore';

@@ -125,6 +125,7 @@ export class ExportService {
           x: Number(el.x) || 0,
           y: Number(el.y) || 0,
           rotation: Number(el.rotation) || 0,
+          colorTint: el.colorTint ? String(el.colorTint) : undefined,
         })),
         connections: Array.isArray(data.connections)
           ? data.connections.map((c: any) => ({

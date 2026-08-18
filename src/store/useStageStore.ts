@@ -46,9 +46,10 @@ interface StageStoreState {
   setEditingLabelId: (id: string | null) => void;
   setActiveGuides: (guides: AlignmentGuide[]) => void;
 
-  addElement: (type: AssetTypeId, x: number, y: number, label?: string) => string;
+  addElement: (type: AssetTypeId, x: number, y: number, label?: string, colorTint?: string) => string;
   updateElement: (id: string, updates: Partial<StageElement>, recordHistory?: boolean) => void;
   updateMultipleElements: (updates: { id: string; changes: Partial<StageElement> }[], recordHistory?: boolean) => void;
+  setColorTintSelected: (colorTint: string | undefined) => void;
   deleteSelected: () => void;
   deleteElement: (id: string) => void;
   rotateSelected: (degreesStep?: number) => void;
@@ -177,7 +178,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
     });
   },
 
-  addElement: (type, x, y, label) => {
+  addElement: (type, x, y, label, colorTint) => {
     const def = ASSET_MAP.get(type);
     const newId = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
     const newEl: StageElement = {
@@ -189,6 +190,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
       rotation: 0,
       width: def?.width || 50,
       height: def?.height || 50,
+      colorTint,
     };
 
     get().recordHistorySnapshot();
@@ -226,6 +228,21 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
         const changes = updateMap.get(el.id);
         return changes ? { ...el, ...changes } : el;
       }),
+      canUndo: useHistoryStore.getState().canUndo(),
+      canRedo: useHistoryStore.getState().canRedo(),
+    }));
+  },
+
+  setColorTintSelected: (colorTint) => {
+    const { selectedIds } = get();
+    if (selectedIds.length === 0) return;
+
+    get().recordHistorySnapshot();
+
+    set((state) => ({
+      elements: state.elements.map((el) =>
+        selectedIds.includes(el.id) ? { ...el, colorTint } : el
+      ),
       canUndo: useHistoryStore.getState().canUndo(),
       canRedo: useHistoryStore.getState().canRedo(),
     }));
@@ -379,6 +396,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
         x: Math.round(el.x),
         y: Math.round(el.y),
         rotation: Math.round(el.rotation),
+        colorTint: el.colorTint,
       })),
       connections: get().getConnections(),
     };
@@ -400,6 +418,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
           rotation: el.rotation || 0,
           width: def?.width || 50,
           height: def?.height || 50,
+          colorTint: el.colorTint,
         };
       }),
       selectedIds: [],

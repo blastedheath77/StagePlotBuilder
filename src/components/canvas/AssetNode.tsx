@@ -88,10 +88,14 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
   const showLabel = !isPowerDrop && Boolean(element.label || def?.name);
 
   const labelText = element.label || def?.name || element.type;
-  const estimatedCharWidth = 6.2;
-  const textWidth = Math.max(labelText.length * estimatedCharWidth + 12, 36);
-  const textHeight = 16;
-  const labelOffsetY = height / 2 + 10;
+  const estimatedCharWidth = 6.4;
+  const textWidth = Math.max(labelText.length * estimatedCharWidth + 14, 38);
+  const textHeight = 18;
+  const labelOffsetY = height / 2 + 12;
+
+  const pillStroke = isSelected
+    ? '#38bdf8'
+    : element.colorTint || category?.color || '#475569';
 
   return (
     <Group
@@ -109,9 +113,15 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
     >
-      <AssetShape type={element.type} width={width} height={height} isSelected={isSelected} />
+      <AssetShape
+        type={element.type}
+        width={width}
+        height={height}
+        isSelected={isSelected}
+        colorTint={element.colorTint}
+      />
 
-      {/* Label Pill (hidden on power drops) */}
+      {/* Label Pill (Perfect vertical & horizontal centering) */}
       {showLabel && (
         <Group y={labelOffsetY} listening={false}>
           <Rect
@@ -119,23 +129,28 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
             y={-textHeight / 2}
             width={textWidth}
             height={textHeight}
-            fill="rgba(15, 23, 42, 0.92)"
-            stroke={isSelected ? '#38bdf8' : category?.color || '#475569'}
+            fill="rgba(15, 23, 42, 0.94)"
+            stroke={pillStroke}
             strokeWidth={1}
-            cornerRadius={3}
+            cornerRadius={4}
+            shadowColor="#000"
+            shadowBlur={4}
+            shadowOpacity={0.5}
           />
           <Text
             x={-textWidth / 2}
-            y={-textHeight / 2 + 3}
+            y={-textHeight / 2}
             width={textWidth}
             height={textHeight}
             text={labelText}
             fontSize={9.5}
             fontFamily="Inter, sans-serif"
-            fontStyle="500"
+            fontStyle="600"
             fill="#f8fafc"
             align="center"
             verticalAlign="middle"
+            padding={0}
+            lineHeight={1}
             ellipsis={true}
           />
         </Group>
