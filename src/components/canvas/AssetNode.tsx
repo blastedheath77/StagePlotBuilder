@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Group, Text, Rect } from 'react-konva';
+import { Group, Text } from 'react-konva';
 import Konva from 'konva';
 import { StageElement } from '../../types/stage';
 import { ASSET_MAP } from '../../config/assetCatalog';
@@ -90,10 +90,10 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
   const showLabel = !isPowerDrop && Boolean(element.label || def?.name);
 
   const labelText = element.label || def?.name || element.type;
-  const estimatedCharWidth = 6.4;
-  const textWidth = Math.max(labelText.length * estimatedCharWidth + 14, 38);
-  const textHeight = 18;
-  const labelOffsetY = height / 2 + 12;
+  const estimatedCharWidth = 6.8;
+  const textWidth = Math.max(labelText.length * estimatedCharWidth + 12, 60);
+  const textHeight = 16;
+  const labelOffsetY = height / 2 + 10;
 
   return (
     <Group
@@ -119,32 +119,24 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
         colorTint={element.colorTint}
       />
 
-      {/* Label Pill without borders */}
+      {/* Pure text label without semi-transparent background rect */}
       {showLabel && (
         <Group y={labelOffsetY} listening={false}>
-          <Rect
-            x={-textWidth / 2}
-            y={-textHeight / 2}
-            width={textWidth}
-            height={textHeight}
-            fill={isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.88)'}
-            cornerRadius={4}
-            shadowColor="#000"
-            shadowBlur={isDark ? 3 : 1}
-            shadowOpacity={isDark ? 0.4 : 0.1}
-          />
           <Text
             x={-textWidth / 2}
             y={-textHeight / 2}
             width={textWidth}
             height={textHeight}
             text={labelText}
-            fontSize={9.5}
+            fontSize={10}
             fontFamily="Inter, sans-serif"
             fontStyle="600"
             fill={isDark ? '#f8fafc' : '#0f172a'}
             align="center"
             verticalAlign="middle"
+            shadowColor={isDark ? '#000000' : '#ffffff'}
+            shadowBlur={4}
+            shadowOpacity={0.8}
             padding={0}
             lineHeight={1}
             ellipsis={true}
