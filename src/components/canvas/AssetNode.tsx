@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Group, Text, Rect } from 'react-konva';
 import Konva from 'konva';
 import { StageElement } from '../../types/stage';
-import { ASSET_MAP, CATEGORIES } from '../../config/assetCatalog';
+import { ASSET_MAP } from '../../config/assetCatalog';
 import { AssetShape } from './AssetShape';
 import { AlignmentService } from '../../services/alignmentService';
 import { useStageStore } from '../../store/useStageStore';
@@ -24,7 +24,6 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
 }) => {
   const groupRef = useRef<Konva.Group>(null);
   const def = ASSET_MAP.get(element.type);
-  const category = def ? CATEGORIES[def.category] : null;
 
   const width = element.width || def?.width || 50;
   const height = element.height || def?.height || 50;
@@ -96,10 +95,6 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
   const textHeight = 18;
   const labelOffsetY = height / 2 + 12;
 
-  const pillStroke = isSelected
-    ? '#38bdf8'
-    : element.colorTint || category?.color || (isDark ? '#475569' : '#94a3b8');
-
   return (
     <Group
       id={element.id}
@@ -124,7 +119,7 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
         colorTint={element.colorTint}
       />
 
-      {/* Label Pill (Theme-adaptive & centered) */}
+      {/* Label Pill without borders */}
       {showLabel && (
         <Group y={labelOffsetY} listening={false}>
           <Rect
@@ -132,13 +127,11 @@ export const AssetNode: React.FC<AssetNodeProps> = ({
             y={-textHeight / 2}
             width={textWidth}
             height={textHeight}
-            fill={isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)'}
-            stroke={pillStroke}
-            strokeWidth={1}
+            fill={isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.88)'}
             cornerRadius={4}
             shadowColor="#000"
-            shadowBlur={isDark ? 4 : 2}
-            shadowOpacity={isDark ? 0.5 : 0.15}
+            shadowBlur={isDark ? 3 : 1}
+            shadowOpacity={isDark ? 0.4 : 0.1}
           />
           <Text
             x={-textWidth / 2}
