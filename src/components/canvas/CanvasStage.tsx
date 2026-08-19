@@ -123,17 +123,21 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
     transformerRef.current.getLayer()?.batchDraw();
   }, [selectedIds, elements, stageRef]);
 
-  // Multicore connection nodes
+  // Multicore connection nodes (support multiple independent stage boxes)
   const fohDesk = elements.find((e) => e.type === 'foh_console');
-  const stageBox = elements.find((e) => e.type === 'stage_box');
+  const stageBoxes = elements.filter((e) => e.type === 'stage_box');
 
   const fohPos = fohDesk
     ? livePositions[fohDesk.id] || { x: fohDesk.x, y: fohDesk.y }
     : null;
 
-  const stageBoxPos = stageBox
-    ? livePositions[stageBox.id] || { x: stageBox.x, y: stageBox.y }
-    : null;
+  const stageBoxEntries = stageBoxes.map((sb, idx) => ({
+    id: sb.id,
+    label: stageBoxes.length > 1 ? `MULTICORE ${idx + 1}` : 'MULTICORE',
+    colorTint: sb.colorTint,
+    pos: livePositions[sb.id] || { x: sb.x, y: sb.y },
+    index: idx,
+  }));
 
   const handleLiveDrag = useCallback((id: string, x: number, y: number) => {
     setLivePositions((prev) => ({
@@ -355,13 +359,19 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({ stageRef }) => {
         </Layer>
 
         <Layer>
-          {fohPos && stageBoxPos && (
-            <MulticoreLine
-              fohPos={fohPos}
-              stageBoxPos={stageBoxPos}
-              canvasWidth={template.canvasWidth}
-            />
-          )}
+          {fohPos &&
+            stageBoxEntries.map((sb) => (
+              <MulticoreLine
+                key={sb.id}
+                fohPos={fohPos}
+                stageBoxPos={sb.pos}
+                canvasWidth={template.canvasWidth}
+                index={sb.index}
+                total={stageBoxEntries.length}
+                label={sb.label}
+                colorTint={sb.colorTint}
+              />
+            ))}
         </Layer>
 
         <Layer>

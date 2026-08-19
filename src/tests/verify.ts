@@ -55,12 +55,14 @@ const sampleElements: StageElement[] = [
 
 const fohDesk = sampleElements.find((e) => e.type === 'foh_console');
 const stageBoxes = sampleElements.filter((e) => e.type === 'stage_box');
-const connections = fohDesk && stageBoxes.length > 0 ? [{ type: 'multicore', from: fohDesk.id, to: stageBoxes[0].id }] : [];
+const connections = fohDesk && stageBoxes.length > 0
+  ? stageBoxes.map((sb) => ({ type: 'multicore', from: fohDesk.id, to: sb.id }))
+  : [];
 
-if (connections.length !== 1 || connections[0].to !== 'stage_box_1') {
-  throw new Error('Multicore logic failure: must connect to first-placed Stage Box only');
+if (connections.length !== 2 || connections[0].to !== 'stage_box_1' || connections[1].to !== 'stage_box_2') {
+  throw new Error('Multicore logic failure: must generate independent connection for each Stage Box');
 }
-console.log(`  ✓ Multicore correctly connected only 1 line: ${connections[0].from} -> ${connections[0].to}`);
+console.log(`  ✓ Multicore correctly connected ${connections.length} independent lines from ${connections[0].from}`);
 
 // 4. Alignment & Snapping Verification
 console.log('\n4. Verifying Alignment & Snapping Service:');

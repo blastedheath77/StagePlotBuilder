@@ -475,13 +475,11 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
     const stageBoxes = elements.filter((e) => e.type === 'stage_box');
 
     if (fohDesk && stageBoxes.length > 0) {
-      return [
-        {
-          type: 'multicore',
-          from: fohDesk.id,
-          to: stageBoxes[0].id,
-        },
-      ];
+      return stageBoxes.map((sb) => ({
+        type: 'multicore' as const,
+        from: fohDesk.id,
+        to: sb.id,
+      }));
     }
     return [];
   },
