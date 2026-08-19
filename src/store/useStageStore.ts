@@ -141,7 +141,7 @@ export const useStageStore = create<StageStoreState>((set, get) => ({
 
   stageScale: 1.0,
   stagePos: { x: 40, y: 40 },
-  gridVisible: true,
+  gridVisible: false,
   gridSnap: false,
   smartGuides: true,
   rulerVisible: true,
