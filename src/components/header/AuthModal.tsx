@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  auth,
-  isFirebaseConfigured,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signInAnonymously,
-  signOut,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  updateProfile,
-} from '../../config/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { AuthService, AppUser } from '../../services/authService';
+import { isFirebaseConfigured } from '../../config/firebase';
 import { StorageService, SavedProject } from '../../services/storageService';
 import { useStageStore } from '../../store/useStageStore';
 import {
@@ -34,6 +23,7 @@ import {
   ArrowLeft,
   Sparkles,
   Search,
+  CheckCircle,
 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -48,7 +38,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialTab = 'projects',
 }) => {
   const [activeTab, setActiveTab] = useState<'projects' | 'signin' | 'signup' | 'reset'>('projects');
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [projects, setProjects] = useState<SavedProject[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -95,36 +85,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   }, [initialTab, isOpen]);
 
   useEffect(() => {
-    if (isFirebaseConfigured && auth) {
-      const unsub = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
-        setUserInStore(currentUser);
-        loadProjects(currentUser);
-      });
-      return () => unsub();
-    } else {
-      loadProjects(null);
-    }
+    const unsub = AuthService.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      setUserInStore(currentUser as any);
+      loadProjects(currentUser);
+    });
+    return () => unsub();
   }, [isOpen]);
 
-  const loadProjects = async (currentUser?: User | null) => {
-    const list = await StorageService.loadUserProjects(currentUser);
+  const loadProjects = async (currentUser?: AppUser | null) => {
+    const list = await StorageService.loadUserProjects(currentUser as any);
     setProjects(list);
   };
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
     setAuthError(null);
     setIsLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      await AuthService.signInWithEmail(email.trim(), password);
       setActiveTab('projects');
       setEmail('');
       setPassword('');
     } catch (err: any) {
-      setAuthError(formatFirebaseError(err.code || err.message));
+      setAuthError(formatAuthError(err.code || err.message));
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +117,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
     setAuthError(null);
 
     if (password.length < 6) {
@@ -146,17 +130,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     setIsLoading(true);
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
-      if (displayName.trim() && cred.user) {
-        await updateProfile(cred.user, { displayName: displayName.trim() });
-      }
+      await AuthService.signUpWithEmail(email.trim(), password, displayName.trim());
       setActiveTab('projects');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
       setDisplayName('');
     } catch (err: any) {
-      setAuthError(formatFirebaseError(err.code || err.message));
+      setAuthError(formatAuthError(err.code || err.message));
     } finally {
       setIsLoading(false);
     }
@@ -164,47 +145,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
     setAuthError(null);
     setAuthMessage(null);
     setIsLoading(true);
 
     try {
-      await sendPasswordResetEmail(auth, email.trim());
+      await AuthService.sendPasswordReset(email.trim());
       setAuthMessage(`Password reset link sent to ${email.trim()}. Please check your inbox.`);
     } catch (err: any) {
-      setAuthError(formatFirebaseError(err.code || err.message));
+      setAuthError(formatAuthError(err.code || err.message));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
     setAuthError(null);
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await AuthService.signInWithGoogle();
       setActiveTab('projects');
     } catch (err: any) {
-      setAuthError(formatFirebaseError(err.code || err.message));
+      setAuthError(formatAuthError(err.code || err.message));
     }
   };
 
   const handleGuestSignIn = async () => {
-    if (!auth) return;
     setAuthError(null);
     try {
-      await signInAnonymously(auth);
+      await AuthService.signInAsGuest();
       setActiveTab('projects');
     } catch (err: any) {
-      setAuthError(formatFirebaseError(err.code || err.message));
+      setAuthError(formatAuthError(err.code || err.message));
     }
   };
 
   const handleSignOut = async () => {
-    if (!auth) return;
-    await signOut(auth);
+    await AuthService.signOut();
     setUser(null);
     setUserInStore(null);
     loadProjects(null);
@@ -220,7 +196,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       bandName,
     };
     setMetadata(updatedMeta);
-    await StorageService.saveProject(updatedMeta, getExportData(), user);
+    await StorageService.saveProject(updatedMeta, getExportData(), user as any);
     await loadProjects(user);
     setIsSaving(false);
     setSaveSuccess(true);
@@ -246,14 +222,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    await StorageService.saveProject(copyMeta, proj.plotData, user);
+    await StorageService.saveProject(copyMeta, proj.plotData, user as any);
     await loadProjects(user);
   };
 
   const handleDeleteProject = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Delete this saved stage plot permanently?')) {
-      await StorageService.deleteProject(id, user);
+      await StorageService.deleteProject(id, user as any);
       await loadProjects(user);
     }
   };
@@ -269,7 +245,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     );
   });
 
-  const formatFirebaseError = (code: string) => {
+  const formatAuthError = (code: string) => {
     switch (code) {
       case 'auth/invalid-email':
         return 'Please enter a valid email address.';
@@ -301,10 +277,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
             <div>
               <div className="text-sm font-bold text-slate-900 dark:text-white leading-none">
-                StagePlot Cloud Studio
+                StagePlot Accounts & Projects
               </div>
               <div className="text-[10px] text-slate-500 dark:text-studio-400 mt-0.5">
-                Multi-User Projects & Cloud Auto-Save
+                {isFirebaseConfigured
+                  ? 'Connected to Firebase Cloud Sync'
+                  : 'Local Storage Mode (Configured for Cloud Sync)'}
               </div>
             </div>
           </div>
@@ -368,9 +346,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </>
           ) : (
             <div className="ml-auto flex items-center gap-2 py-1.5">
-              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Cloud Synced
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
+                <CheckCircle size={12} className="text-emerald-500" />
+                <span>Signed In: {user.email || user.displayName}</span>
               </span>
             </div>
           )}
@@ -393,13 +371,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="min-w-0">
                 <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                   {user
-                    ? user.displayName || user.email || 'Anonymous Live Engineer'
-                    : 'Local Offline Mode (Guest)'}
+                    ? user.displayName || user.email || 'Anonymous Sound Tech'
+                    : 'Guest / Offline Mode'}
                 </div>
                 <div className="text-[11px] text-slate-500 dark:text-studio-400 truncate">
                   {user
-                    ? user.email || 'Signed in via Firebase'
-                    : 'Sign in with an email to auto-save and sync stage plots across all devices'}
+                    ? user.email ? `Logged in as ${user.email}` : 'Signed in as guest'
+                    : 'Register an account or sign in to keep your stage plots organized'}
                 </div>
               </div>
             </div>
@@ -509,7 +487,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   {saveSuccess ? (
                     <>
                       <Check size={14} />
-                      <span>Saved to Cloud!</span>
+                      <span>Saved to Projects!</span>
                     </>
                   ) : (
                     <>
