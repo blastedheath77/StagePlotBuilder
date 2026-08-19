@@ -7,7 +7,6 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
   onSnapshot,
   Unsubscribe,
 } from 'firebase/firestore';
@@ -20,6 +19,15 @@ export interface SavedProject {
 
 const LOCAL_STORAGE_KEY = 'stageplot_projects_local';
 const ACTIVE_PROJECT_KEY = 'stageplot_active_project';
+
+/**
+ * Deep sanitizes an object to remove undefined values which Firestore rejects.
+ */
+function sanitizeForFirestore<T>(data: T): T {
+  return JSON.parse(
+    JSON.stringify(data, (_, value) => (value === undefined ? null : value))
+  );
+}
 
 export class StorageService {
   static getLocalProjects(): SavedProject[] {
@@ -57,24 +65,45 @@ export class StorageService {
     user?: User | null
   ): Promise<void> {
     const currentUser = user !== undefined ? user : auth?.currentUser;
+    const ownerId = currentUser?.uid || metadata.ownerId || 'guest_local';
+
     const project: SavedProject = {
       metadata: {
-        ...metadata,
+        id: metadata.id,
+        name: metadata.name || 'Untitled Stage Plot',
+        venueName: metadata.venueName || '',
+        engineerName: metadata.engineerName || '',
+        bandName: metadata.bandName || '',
+        notes: metadata.notes || '',
+        createdAt: metadata.createdAt || Date.now(),
         updatedAt: Date.now(),
-        ownerId: currentUser?.uid || metadata.ownerId,
+        ownerId,
       },
-      plotData,
+      plotData: {
+        templateId: plotData.templateId,
+        version: plotData.version || '1.0',
+        elements: plotData.elements.map((el) => ({
+          id: el.id,
+          type: el.type,
+          label: el.label || '',
+          x: Math.round(el.x),
+          y: Math.round(el.y),
+          rotation: Math.round(el.rotation || 0),
+          colorTint: el.colorTint || null,
+        })) as any,
+        connections: plotData.connections || [],
+      },
     };
 
-    // 1. Instant local cache mirror
+    // 1. Instant local cache mirror (0ms sync)
     this.saveLocalProject(project);
-    this.saveActiveState(plotData, project.metadata);
+    this.saveActiveState(project.plotData, project.metadata);
 
     // 2. Cloud Firestore sync if authenticated
-    if (isFirebaseConfigured && db && currentUser) {
+    if (isFirebaseConfigured && db && currentUser && currentUser.uid) {
       try {
         const docRef = doc(db, 'stageplots', metadata.id);
-        await setDoc(docRef, {
+        const payload = sanitizeForFirestore({
           metadata: {
             ...project.metadata,
             ownerEmail: currentUser.email || '',
@@ -83,6 +112,7 @@ export class StorageService {
           ownerId: currentUser.uid,
           updatedAt: Date.now(),
         });
+        await setDoc(docRef, payload);
       } catch (err) {
         console.warn('Firestore cloud save failed, saved locally:', err);
         throw err;
@@ -94,15 +124,14 @@ export class StorageService {
     const localProjects = this.getLocalProjects();
     const currentUser = user !== undefined ? user : auth?.currentUser;
 
-    if (!isFirebaseConfigured || !db || !currentUser) {
+    if (!isFirebaseConfigured || !db || !currentUser || !currentUser.uid) {
       return localProjects;
     }
 
     try {
       const q = query(
         collection(db, 'stageplots'),
-        where('ownerId', '==', currentUser.uid),
-        orderBy('updatedAt', 'desc')
+        where('ownerId', '==', currentUser.uid)
       );
       const snapshot = await getDocs(q);
       const cloudProjects: SavedProject[] = [];
@@ -122,7 +151,7 @@ export class StorageService {
       cloudProjects.forEach((p) => mergedMap.set(p.metadata.id, p));
 
       return Array.from(mergedMap.values()).sort(
-        (a, b) => b.metadata.updatedAt - a.metadata.updatedAt
+        (a, b) => (b.metadata.updatedAt || 0) - (a.metadata.updatedAt || 0)
       );
     } catch (err) {
       console.warn('Error fetching cloud projects, using local cache:', err);
@@ -134,7 +163,7 @@ export class StorageService {
     this.deleteLocalProject(projectId);
     const currentUser = user !== undefined ? user : auth?.currentUser;
 
-    if (isFirebaseConfigured && db && currentUser) {
+    if (isFirebaseConfigured && db && currentUser && currentUser.uid) {
       try {
         await deleteDoc(doc(db, 'stageplots', projectId));
       } catch (err) {
